@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RCN Trade Eagle Eye</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --ink: #102033;
+        --muted: #5e6d82;
+        --brand: #0f766e;
+        --brand-dark: #115e59;
+        --line: #d9e2ec;
+        --low: #16a34a;
+        --medium: #d97706;
+        --high: #dc2626;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #edf7f6 0%, var(--bg) 48%, #eef2ff 100%);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      header {
+        padding: 32px clamp(20px, 4vw, 56px) 24px;
+        background: radial-gradient(circle at top left, rgba(20, 184, 166, 0.24), transparent 32%), #061826;
+        color: white;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: #99f6e4;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 4.3rem);
+        line-height: 1;
+      }
+
+      .subhead {
+        max-width: 780px;
+        margin: 16px 0 0;
+        color: #cbd5e1;
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: -34px auto 48px;
+      }
+
+      .toolbar, .card {
+        border: 1px solid rgba(217, 226, 236, 0.88);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px;
+        backdrop-filter: blur(18px);
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .search {
+        min-width: min(360px, 100%);
+        flex: 0 1 360px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 12px 16px;
+        color: var(--ink);
+        font: inherit;
+        outline: none;
+      }
+
+      .search:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin: 20px 0;
+      }
+
+      .kpi {
+        padding: 22px;
+      }
+
+      .kpi span {
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .kpi strong {
+        display: block;
+        margin-top: 10px;
+        font-size: clamp(1.7rem, 3vw, 2.6rem);
+      }
+
+      .table-card {
+        overflow: hidden;
+      }
+
+      .table-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf2f7;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      tr:hover td {
+        background: #f8fafc;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: white;
+        font-size: 0.78rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .Low, .OnTrack { background: var(--low); }
+      .Medium, .Monitor { background: var(--medium); }
+      .High, .Attention { background: var(--high); }
+
+      .empty {
+        padding: 32px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      @media (max-width: 860px) {
+        .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        table { display: block; overflow-x: auto; }
+      }
+
+      @media (max-width: 560px) {
+        .kpis { grid-template-columns: 1fr; }
+        .toolbar { align-items: stretch; }
+        .search { flex-basis: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">RCN Command Center</p>
+      <h1>Trade Eagle Eye</h1>
+      <p class="subhead">
+        A lightweight control-tower style dashboard for monitoring RCN trade positions,
+        shipment windows, price exposure, and operational risk from the MIS tracker workbook.
+      </p>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="Dashboard controls">
+        <div>
+          <strong>Live workbook view</strong>
+          <div class="meta" id="sourceMeta">Loading workbook extract…</div>
+        </div>
+        <input class="search" id="searchInput" type="search" placeholder="Search trade, supplier, origin, buyer…" />
+      </section>
+
+      <section class="kpis" aria-label="Trade summary">
+        <article class="card kpi"><span>Total Trades</span><strong id="totalTrades">0</strong></article>
+        <article class="card kpi"><span>Total Quantity MT</span><strong id="totalQuantity">0</strong></article>
+        <article class="card kpi"><span>Average USD/MT</span><strong id="avgPrice">$0</strong></article>
+        <article class="card kpi"><span>High Risk</span><strong id="highRisk">0</strong></article>
+      </section>
+
+      <section class="card table-card">
+        <div class="table-head">
+          <h2>Trade positions</h2>
+          <div class="meta" id="resultCount">0 records</div>
+        </div>
+        <div id="tableHost"></div>
+      </section>
+    </main>
+
+    <script>
+      const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+      const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+      const state = { records: [] };
+
+      const safe = (value, fallback = '—') => value === undefined || value === null || value === '' ? fallback : value;
+      const compactClass = (value) => String(value || '').replace(/\s+/g, '');
+
+      function renderKpis(records) {
+        const totalQuantity = records.reduce((sum, item) => sum + Number(item.quantityMt || 0), 0);
+        const priced = records.filter((item) => Number(item.contractPriceUsd));
+        const avgPrice = priced.length ? priced.reduce((sum, item) => sum + Number(item.contractPriceUsd || 0), 0) / priced.length : 0;
+        const highRisk = records.filter((item) => String(item.riskLevel || '').toLowerCase() === 'high').length;
+
+        document.getElementById('totalTrades').textContent = number.format(records.length);
+        document.getElementById('totalQuantity').textContent = number.format(totalQuantity);
+        document.getElementById('avgPrice').textContent = currency.format(avgPrice);
+        document.getElementById('highRisk').textContent = number.format(highRisk);
+      }
+
+      function renderTable(records) {
+        document.getElementById('resultCount').textContent = `${records.length} record${records.length === 1 ? '' : 's'}`;
+        if (!records.length) {
+          document.getElementById('tableHost').innerHTML = '<div class="empty">No matching trade positions found.</div>';
+          return;
+        }
+
+        const rows = records.map((item) => `
+          <tr>
+            <td><strong>${safe(item.tradeId)}</strong><br><span class="meta">${safe(item.commodity)}</span></td>
+            <td>${safe(item.supplier)}<br><span class="meta">${safe(item.origin)}</span></td>
+            <td>${safe(item.buyer)}</td>
+            <td>${number.format(Number(item.quantityMt || 0))}</td>
+            <td>${item.contractPriceUsd ? currency.format(Number(item.contractPriceUsd)) : '—'}</td>
+            <td>${safe(item.shipmentWindow)}</td>
+            <td><span class="pill ${compactClass(item.status)}">${safe(item.status)}</span></td>
+            <td><span class="pill ${compactClass(item.riskLevel)}">${safe(item.riskLevel)}</span></td>
+          </tr>
+        `).join('');
+
+        document.getElementById('tableHost').innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Trade</th><th>Supplier / Origin</th><th>Buyer</th><th>Qty MT</th>
+                <th>USD/MT</th><th>Shipment</th><th>Status</th><th>Risk</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      }
+
+      function applyFilter() {
+        const term = document.getElementById('searchInput').value.trim().toLowerCase();
+        const records = !term ? state.records : state.records.filter((item) =>
+          Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(term))
+        );
+        renderKpis(records);
+        renderTable(records);
+      }
+
+      async function loadData() {
+        try {
+          const response = await fetch('data/trade_eagle_eye.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          state.records = Array.isArray(payload.records) ? payload.records : [];
+          document.getElementById('sourceMeta').textContent = `Source: ${safe(payload.source)} • Generated: ${safe(payload.generatedAt)}`;
+          applyFilter();
+        } catch (error) {
+          document.getElementById('sourceMeta').textContent = `Unable to load data/trade_eagle_eye.json: ${error.message}`;
+          document.getElementById('tableHost').innerHTML = '<div class="empty">Dashboard data could not be loaded.</div>';
+        }
+      }
+
+      document.getElementById('searchInput').addEventListener('input', applyFilter);
+      loadData();
+    </script>
+  </body>
+</html>

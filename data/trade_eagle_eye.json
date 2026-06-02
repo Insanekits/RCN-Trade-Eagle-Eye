@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-06-02T00:00:00Z",
+  "source": "Sample data - run npm run sync to refresh from the Excel workbook configured in sync.env",
+  "records": [
+    {
+      "tradeId": "RCN-2026-001",
+      "supplier": "Vietnam Origin Desk",
+      "origin": "Vietnam",
+      "buyer": "Valency RCN",
+      "commodity": "Raw Cashew Nut",
+      "quantityMt": 240,
+      "contractPriceUsd": 1320,
+      "shipmentWindow": "Jun 2026",
+      "status": "On Track",
+      "riskLevel": "Low",
+      "lastUpdated": "2026-06-02"
+    },
+    {
+      "tradeId": "RCN-2026-002",
+      "supplier": "West Africa Aggregator",
+      "origin": "Côte d'Ivoire",
+      "buyer": "Valency RCN",
+      "commodity": "Raw Cashew Nut",
+      "quantityMt": 180,
+      "contractPriceUsd": 1285,
+      "shipmentWindow": "Jul 2026",
+      "status": "Monitor",
+      "riskLevel": "Medium",
+      "lastUpdated": "2026-06-02"
+    },
+    {
+      "tradeId": "RCN-2026-003",
+      "supplier": "Tanzania Export Desk",
+      "origin": "Tanzania",
+      "buyer": "Valency RCN",
+      "commodity": "Raw Cashew Nut",
+      "quantityMt": 320,
+      "contractPriceUsd": 1260,
+      "shipmentWindow": "Aug 2026",
+      "status": "Attention",
+      "riskLevel": "High",
+      "lastUpdated": "2026-06-02"
+    }
+  ]
+}
