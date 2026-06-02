@@ -1,319 +1,1180 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RCN Trade Eagle Eye</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #f4f7fb;
-        --card: #ffffff;
-        --ink: #102033;
-        --muted: #5e6d82;
-        --brand: #0f766e;
-        --brand-dark: #115e59;
-        --line: #d9e2ec;
-        --low: #16a34a;
-        --medium: #d97706;
-        --high: #dc2626;
-      }
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Valency RCN Logistics Control Tower</title>
+<!-- v11: Origin Dues Matrix view with issue flags and cycle-delay by origin -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f5f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --soft:#eef3fb; --line:#dce5f2;
+  --nav:#0b1220; --nav2:#101827; --accent:#2457ff; --cyan:#06b6d4; --good:#059669; --warn:#d97706; --bad:#dc2626;
+  --shadow:0 22px 70px rgba(15,23,42,.10); --shadow2:0 10px 28px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 40% 0%,#eef5ff 0%,#f8fafc 34%,#f3f6fb 100%);color:var(--ink);font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
+.app{min-height:100vh;display:flex}.sidebar{width:272px;position:fixed;inset:0 auto 0 0;background:linear-gradient(180deg,var(--nav),var(--nav2));padding:24px 18px;color:#fff;z-index:30;box-shadow:18px 0 48px rgba(15,23,42,.16)}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}.brand-mark{width:44px;height:44px;border-radius:16px;background:linear-gradient(135deg,#60a5fa,#1d4ed8 55%,#0f172a);display:grid;place-items:center;font-weight:950;box-shadow:0 12px 30px rgba(37,99,235,.35)}.brand h1{font-size:16px;line-height:1.15;margin:0}.brand p{margin:4px 0 0;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#8ea3bd}.nav-label{font-size:10px;color:#71839f;text-transform:uppercase;letter-spacing:.14em;margin:18px 9px 8px}.nav{display:grid;gap:6px}.nav button{border:1px solid transparent;background:transparent;color:#cbd5e1;text-align:left;border-radius:14px;padding:11px 12px;font-weight:750;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px}.nav button:hover,.nav button.active{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.12);color:#fff}.nav button:disabled{opacity:.38;cursor:not-allowed}.nav-dot{width:8px;height:8px;border-radius:50%;background:#64748b}.nav button.active .nav-dot{background:#38bdf8;box-shadow:0 0 0 5px rgba(56,189,248,.14)}.sidebar-foot{position:absolute;bottom:18px;left:18px;right:18px;border-top:1px solid rgba(255,255,255,.10);padding-top:14px;color:#94a3b8;font-size:11px;line-height:1.45}
+.main{margin-left:272px;width:calc(100% - 272px);padding:24px 30px 48px}.mobile-menu{display:none}.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:18px}.title h2{font-size:32px;letter-spacing:-.045em;line-height:1.05;margin:0}.title p{margin:9px 0 0;color:#536174;font-size:14px;max-width:780px}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:rgba(255,255,255,.88);border-radius:999px;padding:9px 13px;font-size:12px;color:#475569;font-weight:800;box-shadow:var(--shadow2);white-space:nowrap}.chip.dim{background:#f8fafc;color:#64748b}.btn{border:0;border-radius:14px;padding:11px 15px;background:#111827;color:#fff;font-weight:900;cursor:pointer;box-shadow:var(--shadow2);white-space:nowrap}.btn:hover{transform:translateY(-1px)}.btn:disabled{background:#d7dce5;color:#8b93a1;cursor:not-allowed;transform:none;box-shadow:none}.btn.secondary{background:#fff;color:#111827;border:1px solid var(--line)}.btn.ghost{background:#eef2ff;color:#1e40af;box-shadow:none}.btn.small{font-size:12px;padding:8px 11px;border-radius:11px}.hidden{display:none!important}
+.upload-gate{min-height:calc(100vh - 140px);display:flex;align-items:center;justify-content:center;padding:10px 0 30px}.upload-card{position:relative;width:min(1180px,100%);overflow:hidden;border:1px solid rgba(220,229,242,.95);border-radius:34px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(247,251,255,.94));box-shadow:var(--shadow);padding:30px}.upload-card:before{content:"";position:absolute;inset:-180px -120px auto auto;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.16),rgba(6,182,212,.08) 50%,transparent 72%);pointer-events:none}.upload-card:after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#2563eb,#06b6d4,#22c55e);opacity:.92}.upload-grid{position:relative;display:grid;gap:22px}.upload-hero{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:22px;align-items:start}.eyebrow{display:inline-flex;border:1px solid #c7d2fe;background:#eef2ff;color:#1d4ed8;border-radius:999px;padding:7px 12px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.12em}.upload-hero h3{font-size:34px;line-height:1.02;letter-spacing:-.052em;margin:16px 0 10px;max-width:680px}.upload-hero p{margin:0;color:#64748b;font-size:15px;line-height:1.52;max-width:710px}.upload-stat-card{border:1px solid #e2e8f0;background:rgba(255,255,255,.86);border-radius:24px;padding:18px;box-shadow:var(--shadow2)}.upload-stat-card span{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;font-weight:950}.upload-stat-card b{display:block;margin-top:8px;font-size:20px;letter-spacing:-.03em}.upload-stat-card p{margin:7px 0 0;color:#64748b;font-size:12px;line-height:1.35}.upload-console{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.72fr);gap:18px;align-items:stretch}.upload-panel{border:1px solid #e2e8f0;background:rgba(255,255,255,.90);border-radius:28px;padding:18px;box-shadow:0 18px 48px rgba(15,23,42,.07)}.upload-panel-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.upload-panel-title h4{margin:0;font-size:15px;letter-spacing:-.02em}.upload-panel-title span{font-size:11px;color:#64748b;font-weight:850}.dropzone{border:1.5px dashed #b8c8de;border-radius:22px;background:linear-gradient(135deg,#ffffff,#f8fbff);padding:20px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;transition:.18s ease}.dropzone.drag{border-color:#2563eb;background:#eff6ff}.file-icon{width:60px;height:60px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg,#e8f0ff,#dcf7ff);color:#1d4ed8;font-weight:950;font-size:18px}.file-copy{min-width:0}.file-copy b{font-size:16px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-copy span{display:block;margin-top:4px;font-size:12px;color:#64748b;line-height:1.35}.file-input{display:none}.file-label{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:14px;background:#0f172a;color:#fff;font-weight:950;padding:11px 16px;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow2)}.upload-controls{margin-top:14px;display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:10px;align-items:center}.select{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 13px;color:#334155;font-weight:850;outline:0;min-height:45px}.upload-status{margin-top:14px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:12px 14px;color:#475569;font-size:12px;line-height:1.45}.upload-status.good{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.upload-status.bad{border-color:#fecaca;background:#fef2f2;color:#991b1b}.upload-right{display:grid;gap:14px}.side-card{border:1px solid #e2e8f0;background:rgba(255,255,255,.92);border-radius:28px;padding:18px;box-shadow:0 18px 48px rgba(15,23,42,.07)}.side-card h4{margin:0;font-size:15px;letter-spacing:-.02em}.steps{display:grid;gap:10px;margin-top:14px}.step{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;border:1px solid #edf2f7;background:#f8fafc;border-radius:18px;padding:10px}.step-num{height:34px;border-radius:13px;background:#eef2ff;color:#1d4ed8;display:grid;place-items:center;font-size:13px;font-weight:950}.step b{font-size:13px;display:block}.step span{display:block;margin-top:3px;color:#64748b;font-size:12px;line-height:1.35}.warning{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:flex-start;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:14px;color:#92400e;font-size:12px;line-height:1.42}.warning b{background:#fef3c7;border-radius:999px;padding:4px 9px}.upload-trust-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.trust-chip{border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:12px}.trust-chip span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:#64748b;font-weight:950}.trust-chip b{display:block;margin-top:5px;font-size:13px}.upload-gate .btn{min-height:45px}.upload-gate .btn:disabled{background:#d7dce5;color:#8b93a1;cursor:not-allowed;transform:none;box-shadow:none}.compact-upload{display:none;margin:0 0 18px;border:1px solid rgba(226,232,240,.95);background:rgba(255,255,255,.86);border-radius:22px;padding:12px;box-shadow:var(--shadow2);align-items:center;justify-content:space-between;gap:12px}.ready .compact-upload{display:flex}.compact-upload .left{display:flex;align-items:center;gap:10px;color:#475569;font-size:12px}.compact-upload .right{display:flex;gap:8px;align-items:center}.compact-upload select{max-width:260px}.section{display:none;animation:fade .18s ease}.section.active{display:block}@keyframes fade{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(8,minmax(126px,1fr));margin-bottom:18px}.card{background:rgba(255,255,255,.94);border:1px solid rgba(226,232,240,.9);border-radius:24px;box-shadow:var(--shadow);padding:18px;overflow:hidden}.kpi{position:relative}.kpi:before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,#2563eb,#06b6d4,#22c55e)}.kpi .label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.11em;font-weight:900}.kpi .value{font-size:25px;letter-spacing:-.04em;font-weight:950;margin-top:10px}.kpi .sub{font-size:12px;color:#64748b;margin-top:7px}.layout-2{grid-template-columns:1.35fr .65fr}.layout-3{grid-template-columns:repeat(3,1fr)}.panel-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel-title h3{margin:0;font-size:16px;letter-spacing:-.02em}.panel-title p{margin:4px 0 0;color:#64748b;font-size:12px}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900}.pill.good{background:#dcfce7;color:#166534}.pill.warn{background:#fef3c7;color:#92400e}.pill.bad{background:#fee2e2;color:#991b1b}.pill.info{background:#e0f2fe;color:#075985}.pill.neutral{background:#f1f5f9;color:#475569}.bars{display:grid;gap:12px}.bar-row{display:grid;grid-template-columns:160px 1fr 95px;gap:12px;align-items:center;font-size:13px}.bar-label{font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:11px;background:#edf2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#06b6d4)}.bar-val{text-align:right;color:#64748b;font-weight:900}.flow{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}.flow-step{background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:12px;min-height:86px}.flow-step b{display:block;font-size:20px}.flow-step span{display:block;margin-top:6px;color:#64748b;font-size:11px;line-height:1.25}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.search-wrap{flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:18px;padding:6px;box-shadow:var(--shadow2)}.search-wrap input{border:0;outline:0;background:transparent;font-size:14px;padding:10px 12px;flex:1}.toolbar-actions{display:flex;gap:8px}.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}.table-wrap{overflow:auto;border-radius:22px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow)}table{border-collapse:separate;border-spacing:0;width:100%;min-width:1260px}th,td{padding:12px;text-align:left;border-bottom:1px solid #edf2f7;font-size:12px;vertical-align:top}th{position:sticky;top:0;background:#f8fafc;z-index:2;color:#475569;text-transform:uppercase;letter-spacing:.08em;font-size:10px}td{color:#1f2937}tr:hover td{background:#fbfdff}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.empty{padding:28px;text-align:center;color:#64748b}.risk-list{display:grid;gap:10px}.risk-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #e5e7eb;background:#fff;border-radius:16px;padding:12px}.risk-item strong{font-size:13px}.risk-item p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.35}.cards-list{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.mini-card{border:1px solid #e2e8f0;border-radius:20px;background:#fff;padding:15px;box-shadow:var(--shadow2)}.mini-card h4{margin:0;font-size:14px}.mini-card p{margin:7px 0 0;color:#64748b;font-size:12px}.metrics-line{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.metric-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:9px}.metric-box span{font-size:10px;color:#64748b;text-transform:uppercase;font-weight:900}.metric-box b{display:block;font-size:16px;margin-top:4px}.quality-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.quality-card{border-radius:18px;background:#fff;border:1px solid #e2e8f0;padding:14px}.quality-card .big{font-size:24px;font-weight:950;margin-top:8px}.summary-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}.strip-item{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:12px;box-shadow:var(--shadow2)}.strip-item span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900}.strip-item b{display:block;margin-top:6px;font-size:18px}.map-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.map-item{padding:13px;border:1px solid #e2e8f0;border-radius:16px;background:#fff}.map-item b{display:block}.map-item span{color:#64748b;font-size:12px}.vee-button{position:fixed;right:24px;bottom:24px;width:58px;height:58px;border-radius:20px;border:0;background:#111827;color:#fff;font-weight:950;box-shadow:0 18px 42px rgba(15,23,42,.26);z-index:50;cursor:pointer}.vee-panel{position:fixed;right:24px;bottom:92px;width:360px;max-width:calc(100vw - 48px);height:470px;background:#fff;border:1px solid var(--line);box-shadow:0 24px 80px rgba(15,23,42,.22);border-radius:24px;display:none;z-index:49;overflow:hidden}.vee-panel.open{display:flex;flex-direction:column}.vee-head{padding:15px 16px;background:#111827;color:#fff;display:flex;justify-content:space-between;align-items:center}.vee-head h4{margin:0}.vee-log{padding:14px;flex:1;overflow:auto;background:#f8fafc}.msg{padding:10px 12px;border-radius:14px;margin:8px 0;font-size:13px;line-height:1.35}.msg.bot{background:#fff;border:1px solid #e2e8f0}.msg.user{background:#dbeafe;margin-left:40px}.vee-input{display:flex;gap:8px;padding:10px;border-top:1px solid #e2e8f0}.vee-input input{flex:1;border:1px solid #dbe2ee;border-radius:12px;padding:10px;outline:0}.print-only{display:none}
+@media(max-width:1100px){.upload-hero,.upload-console{grid-template-columns:1fr}.upload-stat-card{max-width:420px}.upload-trust-row{grid-template-columns:1fr}.dropzone{grid-template-columns:auto 1fr auto}}@media(max-width:700px){.upload-card{padding:22px;border-radius:26px}.upload-hero h3{font-size:28px}.dropzone{grid-template-columns:1fr}.file-label{width:100%}.upload-controls{grid-template-columns:1fr}.upload-stat-card{max-width:none}}@media(max-width:1300px){.kpis{grid-template-columns:repeat(4,1fr)}.layout-2,.layout-3{grid-template-columns:1fr}.cards-list{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:repeat(4,1fr)}.summary-strip{grid-template-columns:repeat(3,1fr)}.quality-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:980px){.sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:translateX(0)}.main{margin-left:0;width:100%;padding:18px}.mobile-menu{display:inline-flex}.topbar{flex-direction:column}.upload-grid{grid-template-columns:1fr}.upload-right{border-left:0;border-top:1px solid #e5edf7}.dropzone{grid-template-columns:1fr}.upload-controls{grid-template-columns:1fr}.compact-upload,.ready .compact-upload{display:grid}.compact-upload .right{flex-wrap:wrap}.cards-list,.map-grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 
-      * { box-sizing: border-box; }
+/* --- Central Desk Pending Command Center --- */
+.desk-hero{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;margin-bottom:16px}.desk-panel{background:rgba(255,255,255,.94);border:1px solid rgba(226,232,240,.95);border-radius:28px;box-shadow:var(--shadow);padding:18px;overflow:hidden}.desk-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.desk-title h3{margin:0;font-size:18px;letter-spacing:-.03em}.desk-title p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.35}.desk-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.desk-kpi{border:1px solid #e2e8f0;border-radius:20px;background:linear-gradient(145deg,#fff,#f8fbff);padding:13px}.desk-kpi span{font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:#64748b;font-weight:950}.desk-kpi b{display:block;margin-top:7px;font-size:24px;letter-spacing:-.045em}.desk-kpi small{display:block;margin-top:3px;color:#64748b;font-size:11px}.desk-kpi.high{border-color:#fecaca;background:#fff7f7}.desk-kpi.warn{border-color:#fed7aa;background:#fffaf0}.desk-origin-grid{display:grid;gap:10px}.origin-line{display:grid;grid-template-columns:145px 1fr 76px;gap:10px;align-items:center}.origin-line b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.origin-line small{text-align:right;color:#64748b;font-weight:900}.origin-track{height:10px;background:#edf2f7;border-radius:999px;overflow:hidden}.origin-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#06b6d4)}.desk-controls{display:grid;grid-template-columns:minmax(250px,1fr) 180px 180px 160px auto;gap:10px;align-items:center;margin-bottom:14px}.desk-search{border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px 14px;font-weight:750;outline:0}.desk-table table{min-width:1320px}.due-pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-weight:950;font-size:10px;text-transform:uppercase;letter-spacing:.04em}.due-pill.high{background:#fee2e2;color:#991b1b}.due-pill.medium{background:#fef3c7;color:#92400e}.due-pill.low{background:#e0f2fe;color:#075985}.due-pill.done{background:#dcfce7;color:#166534}.owner-chip{display:inline-flex;border:1px solid #dbeafe;background:#eff6ff;color:#1e40af;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900}.action-cell{font-weight:800;color:#0f172a}.muted-line{display:block;color:#64748b;font-size:11px;margin-top:3px;font-weight:650}.category-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.category-card{border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:12px}.category-card span{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;font-weight:950}.category-card b{display:block;font-size:20px;margin-top:6px}.category-card small{display:block;color:#64748b;margin-top:4px}
+@media(max-width:1200px){.desk-hero{grid-template-columns:1fr}.desk-kpis{grid-template-columns:repeat(2,1fr)}.desk-controls{grid-template-columns:1fr 1fr}.category-cards{grid-template-columns:repeat(2,1fr)}}
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #edf7f6 0%, var(--bg) 48%, #eef2ff 100%);
-        color: var(--ink);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
+@media print{.sidebar,.actions,.compact-upload,.toolbar,.filters,.vee-button,.vee-panel,.mobile-menu{display:none!important}.main{margin-left:0;width:100%}.section{display:block}.card{box-shadow:none;break-inside:avoid}.print-only{display:block}}
 
-      header {
-        padding: 32px clamp(20px, 4vw, 56px) 24px;
-        background: radial-gradient(circle at top left, rgba(20, 184, 166, 0.24), transparent 32%), #061826;
-        color: white;
-      }
 
-      .eyebrow {
-        margin: 0 0 8px;
-        color: #99f6e4;
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-      }
+/* --- Premium Overview V4: commodity trader logic + SaaS UI --- */
+.overview-grid{display:grid;grid-template-columns:430px minmax(0,1fr);gap:18px;margin-bottom:18px}.overview-card{border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(250,252,255,.94));box-shadow:0 26px 80px rgba(15,23,42,.11);border:1px solid rgba(226,232,240,.9)}.premium-title h3{font-size:18px;letter-spacing:-.035em}.premium-title p{font-size:13px;color:#64748b}.dest-exposure{display:grid;gap:14px;margin-top:8px}.dest-row{display:grid;grid-template-columns:170px 1fr 150px;gap:16px;align-items:center;padding:10px 0}.dest-name{display:flex;flex-direction:column;gap:4px}.dest-name b{font-size:15px;letter-spacing:.03em}.dest-name span{font-size:11px;color:#64748b;font-weight:800}.dest-bar{height:14px;border-radius:999px;background:#edf3fb;overflow:hidden;position:relative}.dest-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#06b6d4);box-shadow:0 10px 22px rgba(6,182,212,.18)}.dest-value{text-align:right}.dest-value b{display:block;font-size:17px;letter-spacing:-.02em}.dest-value span{display:block;margin-top:2px;font-size:11px;color:#64748b;font-weight:850}.position-card{min-height:288px}.donut-wrap{display:grid;place-items:center;gap:14px}.donut{--close:0deg;--short:0deg;--long:0deg;width:220px;height:220px;border-radius:50%;background:conic-gradient(#2563eb 0deg var(--close), #06b6d4 var(--close) calc(var(--close) + var(--short)), #f59e0b calc(var(--close) + var(--short)) calc(var(--close) + var(--short) + var(--long)), #e5e7eb calc(var(--close) + var(--short) + var(--long)) 360deg);display:grid;place-items:center;filter:drop-shadow(0 18px 32px rgba(15,23,42,.10))}.donut:before{content:"";position:absolute;width:112px;height:112px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px rgba(226,232,240,.8)}.donut div{position:relative;text-align:center;z-index:1}.donut b{display:block;font-size:24px;letter-spacing:-.04em}.donut span{display:block;font-size:12px;color:#64748b;font-weight:900}.donut-legend{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px;width:100%}.legend-pill{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #eaf0f8;border-radius:999px;padding:8px 10px;font-size:12px;font-weight:900;color:#334155}.legend-dot{width:11px;height:11px;border-radius:50%;flex:0 0 11px}.flow-card{margin-top:0}.enhanced-flow{grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px}.enhanced-flow .flow-step{position:relative;min-height:96px;border-radius:20px;background:linear-gradient(145deg,#fff,#f8fafc);border:1px solid #e2e8f0;box-shadow:0 10px 26px rgba(15,23,42,.05);padding:15px 14px;overflow:hidden}.enhanced-flow .flow-step:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#2563eb,#06b6d4)}.enhanced-flow .flow-step b{font-size:26px;line-height:1;letter-spacing:-.04em}.enhanced-flow .flow-step span{font-size:12px;margin-top:9px;color:#475569;font-weight:750}.enhanced-flow .flow-step small{display:block;margin-top:3px;color:#94a3b8;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.07em}.overview-insight{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.insight-chip{border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:12px}.insight-chip span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900}.insight-chip b{display:block;margin-top:5px;font-size:17px;letter-spacing:-.02em}@media(max-width:1300px){.overview-grid{grid-template-columns:1fr}.enhanced-flow{grid-template-columns:repeat(4,1fr)}}@media(max-width:760px){.dest-row{grid-template-columns:1fr;gap:8px}.dest-value{text-align:left}.donut{width:190px;height:190px}.donut:before{width:98px;height:98px}.donut-legend{grid-template-columns:1fr}.enhanced-flow{grid-template-columns:repeat(2,1fr)}.overview-insight{grid-template-columns:1fr}}
 
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4vw, 4.3rem);
-        line-height: 1;
-      }
 
-      .subhead {
-        max-width: 780px;
-        margin: 16px 0 0;
-        color: #cbd5e1;
-        font-size: 1rem;
-        line-height: 1.7;
-      }
+.logic-link{border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:950;cursor:pointer;white-space:nowrap}.logic-link:hover{background:#dbeafe}.enhanced-flow .flow-step.zero{opacity:.62;background:linear-gradient(145deg,#fbfdff,#f8fafc)}.enhanced-flow .flow-step.zero:before{background:linear-gradient(90deg,#cbd5e1,#e2e8f0)}.enhanced-flow .flow-step .stage-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.enhanced-flow .flow-step .stage-no{font-size:10px;font-weight:950;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:4px 7px}.enhanced-flow .flow-step .stage-label{display:block;margin-top:10px;color:#334155;font-size:13px;font-weight:900;line-height:1.22}.enhanced-flow .flow-step .stage-sub{display:block;margin-top:6px;color:#64748b;font-size:11px;line-height:1.25;font-weight:700;text-transform:none;letter-spacing:0}.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);z-index:80;display:none;align-items:center;justify-content:center;padding:24px}.modal-backdrop.open{display:flex}.modal-card{width:min(860px,100%);max-height:min(760px,88vh);overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 30px 90px rgba(15,23,42,.28);padding:20px}.modal-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.modal-head h3{margin:0;font-size:20px;letter-spacing:-.03em}.modal-head p{margin:6px 0 0;color:#64748b;font-size:13px}.logic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.logic-row{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:flex-start;border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:11px}.logic-row b{height:28px;border-radius:10px;background:#eef2ff;color:#1d4ed8;display:grid;place-items:center;font-size:12px}.logic-row strong{display:block;font-size:13px;color:#172033}.logic-row span{display:block;margin-top:3px;font-size:12px;color:#64748b;line-height:1.35}@media(max-width:760px){.logic-grid{grid-template-columns:1fr}.modal-card{border-radius:22px}}
+.trader-radar{margin-top:18px}.radar-card{overflow:hidden;position:relative}.radar-card:after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#2563eb,#06b6d4,#22c55e);opacity:.95}.radar-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px}.radar-tile{position:relative;border:1px solid #e2e8f0;background:linear-gradient(145deg,#ffffff,#f8fafc);border-radius:22px;padding:15px 14px;min-height:132px;box-shadow:0 12px 30px rgba(15,23,42,.055);overflow:hidden}.radar-tile:before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:#cbd5e1}.radar-tile.bad:before{background:linear-gradient(90deg,#dc2626,#f97316)}.radar-tile.warn:before{background:linear-gradient(90deg,#d97706,#f59e0b)}.radar-tile.info:before{background:linear-gradient(90deg,#2563eb,#06b6d4)}.radar-tile .radar-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.radar-tile .radar-count{font-size:32px;line-height:1;font-weight:950;letter-spacing:-.055em;color:#020617}.radar-tile .radar-rank{font-size:10px;font-weight:950;color:#64748b;background:#eef2ff;border-radius:999px;padding:5px 8px;white-space:nowrap}.radar-tile h4{font-size:13px;line-height:1.2;margin:13px 0 5px;color:#334155;letter-spacing:-.01em}.radar-tile p{font-size:11px;line-height:1.35;margin:0;color:#64748b;font-weight:700}.radar-tile small{display:block;margin-top:9px;font-size:10px;color:#94a3b8;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.radar-empty{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:22px;padding:16px;color:#64748b;font-weight:800}.risk-item strong .risk-rank{display:inline-flex;align-items:center;justify-content:center;margin-right:7px;width:22px;height:22px;border-radius:8px;background:#eef2ff;color:#1d4ed8;font-size:11px;font-weight:950}@media(max-width:1400px){.radar-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:860px){.radar-grid{grid-template-columns:1fr}}
 
-      main {
-        width: min(1180px, calc(100% - 32px));
-        margin: -34px auto 48px;
-      }
 
-      .toolbar, .card {
-        border: 1px solid rgba(217, 226, 236, 0.88);
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
-      }
 
-      .toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 18px;
-        backdrop-filter: blur(18px);
-      }
+/* Click-through trader risk drilldown */
+.radar-tile{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.radar-tile:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(15,23,42,.12);border-color:#bfdbfe}.radar-tile.active{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12),0 18px 44px rgba(15,23,42,.12)}.radar-tile .tap-hint{display:inline-flex;margin-top:9px;font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.06em;color:#1d4ed8;background:#eff6ff;border:1px solid #dbeafe;border-radius:999px;padding:4px 7px}.risk-drill-header{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#ffffff);border-radius:18px;padding:12px 14px;margin-bottom:12px}.risk-drill-header b{display:block;font-size:13px;color:#0f172a}.risk-drill-header span{display:block;margin-top:3px;font-size:12px;color:#64748b}.risk-item.detail{align-items:start;grid-template-columns:1fr auto;border-radius:18px;padding:14px}.risk-item.detail .detail-grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px;margin-top:10px}.risk-item.detail .detail-grid div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px}.risk-item.detail .detail-grid span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900}.risk-item.detail .detail-grid b{display:block;margin-top:3px;font-size:12px;color:#0f172a;font-weight:850}.risk-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.risk-context-note{font-size:11px;color:#64748b;margin-top:8px}.risk-selected-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;background:#f1f5f9;color:#334155;font-size:11px;font-weight:900}.risk-meta-line{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 0}.risk-meta-line span{display:inline-flex;align-items:center;gap:5px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:999px;padding:5px 8px;font-size:11px;color:#475569;font-weight:850}.status-box b.ok{color:#166534}.status-box b.watch{color:#92400e}.status-box b.bad{color:#991b1b}.status-box b.neutral{color:#475569}
+@media(max-width:980px){.risk-item.detail .detail-grid{grid-template-columns:repeat(2,1fr)}.risk-drill-header{align-items:flex-start;flex-direction:column}.risk-actions{align-items:flex-start}}
 
-      .meta {
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
 
-      .search {
-        min-width: min(360px, 100%);
-        flex: 0 1 360px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 12px 16px;
-        color: var(--ink);
-        font: inherit;
-        outline: none;
-      }
+/* Management exception drilldown */
+.risk-item.mgmt-detail{align-items:start;grid-template-columns:minmax(0,1fr) 110px;border-radius:24px;padding:18px;background:linear-gradient(145deg,#ffffff,#fbfdff);box-shadow:0 16px 42px rgba(15,23,42,.07)}
+.risk-head strong{display:flex;align-items:center;gap:8px;font-size:15px;letter-spacing:-.01em}.risk-head p{font-size:12px;margin:8px 0 0;color:#64748b}.risk-rank{display:inline-grid;place-items:center;min-width:32px;height:32px;border-radius:12px;background:#eef2ff;color:#1d4ed8;font-size:12px;font-weight:950}.risk-meta-line{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 14px}.risk-meta-line span{display:inline-flex;align-items:center;border:1px solid #dce5f2;background:#f8fafc;border-radius:999px;padding:7px 11px;font-size:11px;color:#334155;font-weight:900}.diagnosis-panel{border:1px solid #fecaca;background:#fff7f7;border-radius:18px;padding:14px 16px;margin:8px 0 12px}.diagnosis-panel.warn{border-color:#fde68a;background:#fffbeb}.diagnosis-panel span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;font-weight:950}.diagnosis-panel b{display:block;font-size:18px;margin-top:5px;letter-spacing:-.02em}.diagnosis-panel p{margin:7px 0 0;color:#475569;font-size:12px;line-height:1.45}.checkpoint-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.checkpoint{border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:12px;min-height:84px}.checkpoint span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.11em;color:#64748b;font-weight:950}.checkpoint b{display:block;margin-top:6px;font-size:13px;line-height:1.2}.checkpoint small{display:block;margin-top:5px;color:#64748b;font-size:11px;line-height:1.3}.checkpoint.pending{border-color:#fecaca;background:#fff7f7}.checkpoint.pending b{color:#991b1b}.checkpoint.safe{border-color:#bbf7d0;background:#f0fdf4}.checkpoint.safe b{color:#166534}.checkpoint.watch{border-color:#fde68a;background:#fffbeb}.checkpoint.watch b{color:#92400e}.checkpoint.time{border-color:#bfdbfe;background:#eff6ff}.checkpoint.time b{color:#1e3a8a}.action-row{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:start;border:1px solid #dbeafe;background:#f8fbff;border-radius:16px;padding:12px 14px;margin-top:12px}.action-row b{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#1d4ed8}.action-row span{font-size:13px;color:#334155;line-height:1.45;font-weight:750}.risk-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px}.risk-selected-chip{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;background:#eef2ff;color:#1e40af;font-size:11px;font-weight:950}.other-fine{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:#ecfdf5;color:#166534;font-size:11px;font-weight:900}
+@media(max-width:1100px){.checkpoint-board{grid-template-columns:repeat(2,minmax(0,1fr))}.risk-item.mgmt-detail{grid-template-columns:1fr}.risk-actions{align-items:flex-start;flex-direction:row}.action-row{grid-template-columns:1fr}}
 
-      .search:focus {
-        border-color: var(--brand);
-        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
-      }
+.origin-due-controls{grid-template-columns:minmax(260px,1.2fr) 170px 180px 220px 165px auto auto auto}.selected-filter-strip{margin-top:12px;border:1px solid #dbeafe;background:#f8fbff;color:#1e3a8a;border-radius:16px;padding:10px 12px;font-size:12px;font-weight:900}.origin-line,.category-card{cursor:pointer;transition:.16s ease}.origin-line:hover,.category-card:hover{transform:translateY(-1px);filter:brightness(.99)}.origin-line.active,.category-card.active{border-color:#2563eb;background:#eff6ff;box-shadow:0 10px 26px rgba(37,99,235,.12)}.origin-line{border:1px solid transparent;border-radius:14px;padding:8px}.category-card.critical{border-color:#fecaca;background:#fff7f7}.category-card.critical b{color:#991b1b}.category-card.warn{border-color:#fed7aa;background:#fffaf0}.category-card.active span,.origin-line.active b{color:#1d4ed8}.desk-table tr.row-high td{background:#fff7f7}.desk-table tr.row-medium td{background:#fffaf0}.desk-table tr.row-focus td{box-shadow:inset 3px 0 0 #2563eb}.issue-badge{display:inline-flex;align-items:center;border-radius:999px;background:#f1f5f9;color:#334155;padding:4px 8px;font-size:10px;font-weight:950;margin-top:6px}.monitor-chip{display:inline-flex;border:1px solid #e2e8f0;background:#f8fafc;color:#475569;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900}
+@media(max-width:1200px){.origin-due-controls{grid-template-columns:1fr 1fr}.origin-due-controls .chip{justify-content:center}}
 
-      .kpis {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 18px;
-        margin: 20px 0;
-      }
 
-      .kpi {
-        padding: 22px;
-      }
 
-      .kpi span {
-        color: var(--muted);
-        font-size: 0.84rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
+/* v10 Origin focus + cycle-delay upgrades */
+.origin-focus{margin:14px 0;border:1px solid #dbeafe;background:linear-gradient(135deg,#ffffff,#f8fbff);border-radius:22px;padding:16px;box-shadow:0 10px 28px rgba(15,23,42,.05)}
+.origin-focus.empty{border-style:dashed;background:#f8fafc;color:#64748b}
+.origin-focus-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+.origin-focus-head h4{margin:0;font-size:18px;letter-spacing:-.03em}.origin-focus-head p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.35}
+.origin-focus-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px}.origin-focus-metric{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:12px}.origin-focus-metric span{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#64748b;font-weight:950}.origin-focus-metric b{display:block;margin-top:5px;font-size:22px}.origin-focus-metric.high b{color:#991b1b}.origin-focus-issues{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.issue-token{display:inline-flex;gap:6px;align-items:center;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;color:#334155;font-weight:800}.issue-token.high{background:#fff1f2;border-color:#fecaca;color:#991b1b}.cycle-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;font-weight:900;font-size:11px}.cycle-chip.delay{background:#fee2e2;color:#991b1b}.cycle-chip.ok{background:#ecfdf5;color:#047857}.cycle-chip.watch{background:#fffbeb;color:#92400e}.cycle-detail{display:block;margin-top:4px;color:#64748b;font-size:11px;line-height:1.35}.landing-fix-note{font-size:12px;color:#64748b;margin-top:8px}
+.origin-matrix-note{margin:10px 0 12px;color:#64748b;font-size:12px;line-height:1.4}.matrix-table table{min-width:2100px}.matrix-table th{vertical-align:bottom}.matrix-table td{vertical-align:top}.matrix-key{font-weight:950;color:#0f172a}.matrix-sub{display:block;color:#64748b;font-size:11px;margin-top:4px;font-weight:700}.matrix-flag{display:block;border-radius:14px;padding:9px 10px;min-width:150px;font-weight:950;line-height:1.2;border:1px solid #e2e8f0;background:#f8fafc;color:#334155}.matrix-flag small{display:block;margin-top:6px;font-size:10px;line-height:1.25;font-weight:800;color:#64748b}.matrix-flag.high{background:#fff1f2;border-color:#fecaca;color:#991b1b}.matrix-flag.medium{background:#fffbeb;border-color:#fde68a;color:#92400e}.matrix-flag.low{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}.matrix-ok{display:block;min-width:90px;color:#94a3b8;font-weight:900}.matrix-row-high td:first-child{box-shadow:inset 4px 0 0 #ef4444}.matrix-row-medium td:first-child{box-shadow:inset 4px 0 0 #f59e0b}.matrix-legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.matrix-legend span{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:900;border:1px solid #e2e8f0;background:#fff}.matrix-legend .high{background:#fff1f2;border-color:#fecaca;color:#991b1b}.matrix-legend .medium{background:#fffbeb;border-color:#fde68a;color:#92400e}.matrix-legend .ok{background:#f8fafc;color:#64748b}
 
-      .kpi strong {
-        display: block;
-        margin-top: 10px;
-        font-size: clamp(1.7rem, 3vw, 2.6rem);
-      }
+@media(max-width:900px){.origin-focus-grid{grid-template-columns:repeat(2,1fr)}}
 
-      .table-card {
-        overflow: hidden;
-      }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-mark">LCT</div><div><h1>Valency RCN<br/>Control Tower</h1><p>Execution Intelligence</p></div></div>
+    <div class="nav-label">Dashboard</div>
+    <div class="nav" id="mainNav">
+      <button class="active" data-section="overview" disabled><span class="nav-dot"></span>Overview</button>
+      <button data-section="centraldesk" disabled><span class="nav-dot"></span>Origin Dues</button>
+      <button data-section="shipments" disabled><span class="nav-dot"></span>Shipments</button>
+      <button data-section="documents" disabled><span class="nav-dot"></span>Documents</button>
+      <button data-section="quality" disabled><span class="nav-dot"></span>Quality</button>
+      <button data-section="buyers" disabled><span class="nav-dot"></span>Buyers</button>
+      <button data-section="forwarders" disabled><span class="nav-dot"></span>Forwarders</button>
+      <button data-section="risk" disabled><span class="nav-dot"></span>Risk</button>
+      <button data-section="datamap" disabled><span class="nav-dot"></span>Data Map</button>
+    </div>
+    <div class="sidebar-foot">Designed by: <b>Krishna Vajramatti</b><br/>No MIS data is shown until you upload and analyze a workbook.</div>
+  </aside>
 
-      .table-head {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 22px 24px;
-        border-bottom: 1px solid var(--line);
-      }
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <button class="btn small secondary mobile-menu" onclick="toggleSidebar()">Menu</button>
+        <h2>Valency RCN Logistics Control Tower</h2>
+        <p>One clean operating view for shipment execution, documentation readiness, quality and destination-level cargo movement.</p>
+      </div>
+      <div class="actions">
+        <span class="chip dim">Snapshot: <b id="snapshotDate">Awaiting upload</b></span>
+        <span class="chip dim">Source: <b id="sourceLabel">No file analyzed</b></span>
+        <button class="btn secondary" id="pdfBtn" onclick="exportPDF()" disabled>Export PDF</button>
+      </div>
+    </div>
 
-      h2 {
-        margin: 0;
-        font-size: 1.25rem;
-      }
+    <section class="upload-gate" id="uploadGate">
+      <div class="upload-card">
+        <div class="upload-grid">
+          <div class="upload-hero">
+            <div>
+              <span class="eyebrow">Upload-first control tower</span>
+              <h3>Load latest MIS. Analyze. Control execution.</h3>
+              <p>A clean upload-first cockpit. No old snapshot data is shown. The dashboard opens only after your workbook is processed in-browser.</p>
+            </div>
+            <div class="upload-stat-card">
+              <span>Required source</span>
+              <b>MIS 2026 sheet</b>
+              <p>Best used with the latest RCN MIS / shipment tracker workbook.</p>
+            </div>
+          </div>
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
+          <div class="upload-console">
+            <div class="upload-panel">
+              <div class="upload-panel-title">
+                <h4>Upload workbook</h4>
+                <span>Step 1 of 3</span>
+              </div>
+              <div class="dropzone" id="dropzone">
+                <div class="file-icon">XL</div>
+                <div class="file-copy"><b id="chosenFileName">No file selected</b><span>Choose or drag the workbook containing <b>MIS 2026</b>.</span></div>
+                <label class="file-label" for="fileInput">Choose Excel</label>
+                <input class="file-input" id="fileInput" type="file" accept=".xlsx,.xls,.csv" onchange="handleWorkbookFile(event)" />
+              </div>
+              <div class="upload-controls">
+                <select class="select" id="sheetSelect" disabled><option>No sheet loaded</option></select>
+                <button class="btn" id="analyzeBtn" onclick="analyzeUploadedSheet()" disabled>Analyze</button>
+              </div>
+              <div class="upload-status" id="uploadStatus">Waiting for upload. No MIS data is currently loaded. After Analyze, choose any origin in Origin Dues Radar to see exact pending details and cycle-time delay.</div>
+            </div>
 
-      th, td {
-        padding: 16px 18px;
-        border-bottom: 1px solid #edf2f7;
-        text-align: left;
-        vertical-align: top;
-      }
+            <div class="upload-right">
+              <div class="side-card">
+                <h4>How the flow works</h4>
+                <div class="steps">
+                  <div class="step"><div class="step-num">1</div><div><b>Select workbook</b><span>Upload latest RCN MIS / shipment tracker.</span></div></div>
+                  <div class="step"><div class="step-num">2</div><div><b>Confirm sheet</b><span>Auto-selects MIS 2026 when available.</span></div></div>
+                  <div class="step"><div class="step-num">3</div><div><b>Analyze dashboard</b><span>KPIs, stages, risks, search and Vee refresh.</span></div></div>
+                </div>
+              </div>
+              <div class="warning"><b>Note</b><span>.xlsx analysis uses a browser-side parser from CDN. No Excel data is embedded in this HTML.</span></div>
+            </div>
+          </div>
 
-      th {
-        color: var(--muted);
-        font-size: 0.74rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      tr:hover td {
-        background: #f8fafc;
-      }
-
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 6px 10px;
-        color: white;
-        font-size: 0.78rem;
-        font-weight: 800;
-        white-space: nowrap;
-      }
-
-      .Low, .OnTrack { background: var(--low); }
-      .Medium, .Monitor { background: var(--medium); }
-      .High, .Attention { background: var(--high); }
-
-      .empty {
-        padding: 32px;
-        color: var(--muted);
-        text-align: center;
-      }
-
-      @media (max-width: 860px) {
-        .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        table { display: block; overflow-x: auto; }
-      }
-
-      @media (max-width: 560px) {
-        .kpis { grid-template-columns: 1fr; }
-        .toolbar { align-items: stretch; }
-        .search { flex-basis: 100%; }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <p class="eyebrow">RCN Command Center</p>
-      <h1>Trade Eagle Eye</h1>
-      <p class="subhead">
-        A lightweight control-tower style dashboard for monitoring RCN trade positions,
-        shipment windows, price exposure, and operational risk from the MIS tracker workbook.
-      </p>
-    </header>
-
-    <main>
-      <section class="toolbar" aria-label="Dashboard controls">
-        <div>
-          <strong>Live workbook view</strong>
-          <div class="meta" id="sourceMeta">Loading workbook extract…</div>
+          <div class="upload-trust-row">
+            <div class="trust-chip"><span>Design rule</span><b>Blank before upload</b></div>
+            <div class="trust-chip"><span>Data rule</span><b>Column A drives stage flow</b></div>
+            <div class="trust-chip"><span>Output</span><b>Management-ready LCT view</b></div>
+          </div>
         </div>
-        <input class="search" id="searchInput" type="search" placeholder="Search trade, supplier, origin, buyer…" />
-      </section>
+      </div>
+    </section>
 
-      <section class="kpis" aria-label="Trade summary">
-        <article class="card kpi"><span>Total Trades</span><strong id="totalTrades">0</strong></article>
-        <article class="card kpi"><span>Total Quantity MT</span><strong id="totalQuantity">0</strong></article>
-        <article class="card kpi"><span>Average USD/MT</span><strong id="avgPrice">$0</strong></article>
-        <article class="card kpi"><span>High Risk</span><strong id="highRisk">0</strong></article>
-      </section>
+    <div class="compact-upload" id="compactUpload">
+      <div class="left"><b>Refresh dashboard:</b><span id="compactFileName">No file selected</span></div>
+      <div class="right"><label class="file-label" for="fileInputTop">Choose Excel</label><input class="file-input" id="fileInputTop" type="file" accept=".xlsx,.xls,.csv" onchange="handleWorkbookFile(event)"/><select class="select" id="sheetSelectTop" disabled><option>No sheet loaded</option></select><button class="btn small" id="analyzeBtnTop" onclick="analyzeUploadedSheet()" disabled>Analyze</button></div>
+    </div>
 
-      <section class="card table-card">
-        <div class="table-head">
-          <h2>Trade positions</h2>
-          <div class="meta" id="resultCount">0 records</div>
+    <section id="dashboardShell" class="hidden">
+      <section class="section active" id="overview">
+        <div class="grid kpis" id="kpiGrid"></div>
+
+        <div class="overview-grid">
+          <div class="card overview-card position-card">
+            <div class="panel-title premium-title">
+              <div>
+                <h3>Trade position mix</h3>
+                <p>Close / long / short / open status.</p>
+              </div>
+              <span class="pill info">Position</span>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut" id="positionDonut"><div><b>0</b><span>contracts</span></div></div>
+              <div class="donut-legend" id="positionLegend"></div>
+            </div>
+          </div>
+
+          <div class="card overview-card flow-card">
+            <div class="panel-title premium-title">
+              <div>
+                <h3>Execution Stage Flow</h3>
+                <p>Current count across the full MIS execution path.</p>
+              </div>
+              <button class="logic-link" onclick="openStageLogic()" title="View how Column A is translated into dashboard stages">MIS Status Logic</button>
+            </div>
+            <div class="flow enhanced-flow" id="stageFlow"></div>
+          </div>
         </div>
-        <div id="tableHost"></div>
+
+        <div class="card radar-card trader-radar">
+          <div class="panel-title premium-title">
+            <div>
+              <h3>Trader Risk Radar</h3>
+              <p>Top 5 trader-critical exceptions across ETA, SOB, LDS, OBL, certificates and banking.</p>
+            </div>
+            <span class="pill bad">Top 5</span>
+          </div>
+          <div class="radar-grid" id="traderRadar"></div>
+        </div>
       </section>
-    </main>
 
-    <script>
-      const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-      const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
-      const state = { records: [] };
 
-      const safe = (value, fallback = '—') => value === undefined || value === null || value === '' ? fallback : value;
-      const compactClass = (value) => String(value || '').replace(/\s+/g, '');
+      <section class="section" id="centraldesk">
+        <div class="desk-hero">
+          <div class="desk-panel">
+            <div class="desk-title">
+              <div>
+                <h3>Origin Dues Radar</h3>
+                <p>Origin-side pending actions monitored by Central Desk across LDS, SOB, Draft BL, OBL, certificates, DHL and stuffing/quality reports.</p>
+              </div>
+              <span class="pill info">Origin Follow-up</span>
+            </div>
+            <div class="desk-kpis" id="centralDeskKpis"></div>
+            <div class="category-cards" id="centralCategoryCards"></div>
+            <div class="selected-filter-strip" id="centralSelectedStrip">All origins · All issue buckets · All priorities</div>
+          </div>
+          <div class="desk-panel">
+            <div class="desk-title">
+              <div>
+                <h3>Origin-wise Pending Load</h3>
+                <p>Click any origin to filter the queue and highlight its open issues.</p>
+              </div>
+              <span class="pill neutral">Origin</span>
+            </div>
+            <div class="desk-origin-grid" id="centralOriginLoad"></div>
+          </div>
+        </div>
+        <div class="desk-panel">
+          <div class="desk-title">
+            <div>
+              <h3>Origin Dues Matrix</h3>
+              <p>Choose an origin to see contract-level dues. One row = one contract/BL; columns show only the broken origin checkpoints with cycle-time delay.</p>
+            </div>
+            <button class="btn small secondary" onclick="exportCentralDeskCSV()">Export CSV</button>
+          </div>
+          <div class="desk-controls origin-due-controls">
+            <input class="desk-search" id="centralSearch" placeholder="Search contract / BL / buyer / origin / checkpoint / action" oninput="renderCentralDeskTable()"/>
+            <select class="select" id="centralOriginFilter" onchange="renderCentralDeskTable()"></select>
+            <select class="select" id="centralCategoryFilter" onchange="renderCentralDeskTable()"></select>
+            <select class="select" id="centralIssueFilter" onchange="renderCentralDeskTable()"></select>
+            <select class="select" id="centralPriorityFilter" onchange="renderCentralDeskTable()"><option value="all">All priority</option><option value="High">Critical / High</option><option value="Medium">Watch / Medium</option><option value="Low">Low</option></select>
+            <button class="btn small ghost" onclick="setCentralPriorityFilter('High')">Highlight Critical</button>
+            <button class="btn small secondary" onclick="clearCentralFilters()">Clear</button>
+            <span class="chip"><b id="centralResultCount">0</b> dues</span>
+          </div>
+          <div id="centralOriginFocus" class="origin-focus empty">Choose one origin above to see a focused due summary with issue mix and cycle-time delay.</div>
+          <div class="matrix-legend"><span class="high">Critical / High</span><span class="medium">Watch / Medium</span><span class="ok">Blank = no due for that checkpoint</span></div>
+          <div class="origin-matrix-note">Tip: select one origin from the filter or click an origin in the load panel. The table will show exactly which checkpoints are pending and the delay against SLA.</div>
+          <div class="table-wrap desk-table matrix-table"><table id="centralDeskTable"></table></div>
+        </div>
+      </section>
 
-      function renderKpis(records) {
-        const totalQuantity = records.reduce((sum, item) => sum + Number(item.quantityMt || 0), 0);
-        const priced = records.filter((item) => Number(item.contractPriceUsd));
-        const avgPrice = priced.length ? priced.reduce((sum, item) => sum + Number(item.contractPriceUsd || 0), 0) / priced.length : 0;
-        const highRisk = records.filter((item) => String(item.riskLevel || '').toLowerCase() === 'high').length;
+      <section class="section" id="shipments">
+        <div class="toolbar"><div class="search-wrap"><input id="globalSearch" placeholder="Search Contract / BL / HBL / Buyer / Vessel / Destination" oninput="refreshShipmentTable()"/><button class="btn small ghost" onclick="clearSearch()">Clear</button></div><div class="toolbar-actions"><button class="btn small secondary" onclick="exportCSV()">CSV</button><button class="btn small secondary" onclick="exportPDF()">PDF</button></div></div>
+        <div class="filters"><select class="select" id="destFilter" onchange="refreshShipmentTable()"></select><select class="select" id="statusFilter" onchange="refreshShipmentTable()"></select><select class="select" id="docFilter" onchange="refreshShipmentTable()"><option value="all">All doc status</option><option value="oblPending">OBL pending</option><option value="certPending">Cert pending</option><option value="negoPending">Nego pending</option><option value="landed">Landed report available</option></select><span class="chip"><b id="resultCount">0</b> rows</span></div>
+        <div class="table-wrap"><table id="shipTable"></table></div>
+      </section>
 
-        document.getElementById('totalTrades').textContent = number.format(records.length);
-        document.getElementById('totalQuantity').textContent = number.format(totalQuantity);
-        document.getElementById('avgPrice').textContent = currency.format(avgPrice);
-        document.getElementById('highRisk').textContent = number.format(highRisk);
+      <section class="section" id="documents">
+        <div class="summary-strip" id="docStrip"></div>
+        <div class="grid layout-3"><div class="card"><div class="panel-title"><div><h3>OBL control</h3><p>BL received, OBL scan, destination receipt.</p></div></div><div class="bars" id="oblBars"></div></div><div class="card"><div class="panel-title"><div><h3>Certificate control</h3><p>Final cert scan, DHL and destination receipt.</p></div></div><div class="bars" id="certBars"></div></div><div class="card"><div class="panel-title"><div><h3>Negotiation status</h3><p>Banking and buyer-bank document movement.</p></div></div><div class="bars" id="negoBars"></div></div></div>
+        <div class="card" style="margin-top:16px"><div class="panel-title"><div><h3>Document exceptions</h3><p>Contracts needing OBL / Cert / Nego follow-up.</p></div></div><div class="risk-list" id="docExceptions"></div></div>
+      </section>
+
+      <section class="section" id="quality">
+        <div class="quality-grid" id="qualityCards"></div>
+        <div class="grid layout-2" style="margin-top:16px"><div class="card"><div class="panel-title"><div><h3>KOR by destination</h3><p>Contract / loaded / landed KOR view.</p></div></div><div class="bars" id="qualityBars"></div></div><div class="card"><div class="panel-title"><div><h3>Quality exceptions</h3><p>Missing reports or KOR variance signals.</p></div></div><div class="risk-list" id="qualityExceptions"></div></div></div>
+      </section>
+
+      <section class="section" id="buyers">
+        <div class="toolbar"><div class="search-wrap"><input id="buyerSearch" placeholder="Search buyer" oninput="renderBuyers()"/><button class="btn small ghost" onclick="document.getElementById('buyerSearch').value='';renderBuyers()">Clear</button></div><div class="toolbar-actions"><button class="btn small secondary" onclick="exportBuyerCSV()">CSV</button></div></div><div class="cards-list" id="buyerCards"></div>
+      </section>
+
+      <section class="section" id="forwarders"><div class="grid layout-2"><div class="card"><div class="panel-title"><div><h3>Vessel movement</h3><p>Vessel-wise BL quantity and destination mapping.</p></div></div><div class="risk-list" id="vesselList"></div></div><div class="card"><div class="panel-title"><div><h3>Shipping lines</h3><p>Shipment distribution by shipping line.</p></div></div><div class="bars" id="shippingBars"></div></div></div></section>
+
+      <section class="section" id="risk">
+        <div class="card radar-card" style="margin-bottom:16px">
+          <div class="panel-title premium-title">
+            <div><h3>Trader Risk Radar</h3><p>Focused on the five alerts a trader should act on first.</p></div>
+            <span class="pill bad">Top 5</span>
+          </div>
+          <div class="radar-grid" id="traderRadarRisk"></div>
+        </div>
+        <div class="grid kpis" id="riskKpis"></div>
+        <div class="grid layout-2">
+          <div class="card" id="riskRegisterCard"><div class="panel-title"><div><h3>Priority register</h3><p>Tap any radar card to open the exact contracts behind that issue.</p></div></div><div id="riskDrillHeader" class="risk-drill-header"></div><div class="risk-list" id="riskList"></div></div>
+          <div class="card"><div class="panel-title"><div><h3>Risk interpretation</h3><p>Why these alerts matter for cash, release, contract obligation and P&L visibility.</p></div></div><div id="riskSegmentCards"></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="datamap"><div class="card"><div class="panel-title"><div><h3>Data map</h3><p>Key MIS source fields used by this dashboard.</p></div></div><div class="map-grid" id="dataMap"></div></div></section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="stageLogicModal" onclick="if(event.target.id==='stageLogicModal')closeStageLogic()">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="stageLogicTitle">
+    <div class="modal-head">
+      <div>
+        <h3 id="stageLogicTitle">MIS Status Logic</h3>
+        <p>Dashboard language stays business-friendly. Mapping is driven by Column A: Trade Status.</p>
+      </div>
+      <button class="btn small secondary" onclick="closeStageLogic()">Close</button>
+    </div>
+    <div class="logic-grid" id="stageLogicGrid"></div>
+  </div>
+</div>
+
+<button class="vee-button" id="veeBtn">Vee</button>
+<div class="vee-panel" id="veePanel"><div class="vee-head"><h4>Vee Patron</h4><button class="btn small secondary" onclick="closeVee()">Close</button></div><div class="vee-log" id="veeLog"><div class="msg bot">Upload and analyze an MIS sheet first. Then ask me about OBL, certs, total summary, buyer or BL search.</div></div><div class="vee-input"><input id="veeInput" placeholder="Ask about this uploaded MIS..." onkeydown="if(event.key==='Enter')askVee()"/><button class="btn small" onclick="askVee()">Ask</button></div></div>
+
+<script>
+let DATA=[]; let filteredRows=[]; let ACTIVE_RISK_ID='all'; let UPLOADED_WORKBOOK=null; let UPLOADED_FILE_NAME=''; let UPLOADED_IS_CSV=false; let SNAPSHOT_DISPLAY='Awaiting upload';
+const fmt=new Intl.NumberFormat('en-US',{maximumFractionDigits:0}); const fmt1=new Intl.NumberFormat('en-US',{maximumFractionDigits:1});
+function $(id){return document.getElementById(id)} function txt(v){return (v===null||v===undefined)?'':String(v).trim()} function up(v){return txt(v).toUpperCase()} function has(v){const s=txt(v);return s!=='' && s!=='0' && s!=='-' && s.toUpperCase()!=='N/A'} function n(v){const x=Number(String(v??'').replace(/,/g,''));return isFinite(x)?x:0} function escapeHTML(s){return txt(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function escapeAttr(s){
+  return txt(s)
+    .replace(/&/g,'&amp;')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'")
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/\r?\n/g,' ');
+}
+function toggleSidebar(){$('sidebar').classList.toggle('open')} function exportPDF(){if(!DATA.length){alert('Upload and analyze an MIS file first.');return;} window.print();}
+function setSection(id){document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('#mainNav button').forEach(b=>b.classList.toggle('active',b.dataset.section===id)); if(window.innerWidth<980)$('sidebar').classList.remove('open')}
+document.querySelectorAll('#mainNav button').forEach(btn=>btn.addEventListener('click',()=>{if(!btn.disabled)setSection(btn.dataset.section)}));
+function syncTopControls(){const s=$('sheetSelect'), t=$('sheetSelectTop'); if(!s||!t)return; t.innerHTML=s.innerHTML; t.value=s.value; t.disabled=s.disabled; $('analyzeBtnTop').disabled=$('analyzeBtn').disabled; $('compactFileName').textContent=UPLOADED_FILE_NAME||'No file selected';}
+function setUploadStatus(msg,tone='neutral'){const el=$('uploadStatus'); if(!el)return; el.innerHTML=msg; el.className='upload-status '+(tone==='good'?'good':tone==='bad'?'bad':'');}
+function cell(r,i){return (r&&i>=0&&i<r.length)?r[i]:''} function cleanCell(v){return txt(v)} function numCell(v){if(typeof v==='number')return isFinite(v)?v:0; const s=txt(v).replace(/,/g,''); const m=s.match(/-?\d+(\.\d+)?/); return m?Number(m[0]):0}
+function datePartsFromExcelSerial(v){
+  try{
+    if(window.XLSX&&XLSX.SSF&&typeof v==='number'){
+      const d=XLSX.SSF.parse_date_code(v);
+      if(d)return {y:d.y,m:d.m,d:d.d};
+    }
+  }catch(e){}
+  if(typeof v==='number'&&v>20000&&v<90000){
+    const base=Date.UTC(1899,11,30);
+    const dt=new Date(base+Math.round(v)*86400000);
+    return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};
+  }
+  return null;
+}
+function dateParts(v){
+  if(v instanceof Date&&!isNaN(v)){
+    return {y:v.getFullYear(),m:v.getMonth()+1,d:v.getDate()};
+  }
+  if(typeof v==='number'){
+    if(v<=0)return null;
+    return datePartsFromExcelSerial(v);
+  }
+  const s=txt(v);
+  if(!s||s==='0'||s==='-'||s.toUpperCase()==='N/A')return null;
+  // Excel sometimes reaches the browser as a numeric string. Treat 20k-90k as Excel serial, not as year 46160.
+  if(/^\d+(\.\d+)?$/.test(s)){
+    const serial=Number(s);
+    if(serial>20000&&serial<90000)return datePartsFromExcelSerial(serial);
+  }
+  let m=s.match(/^(\d{1,2})[\/-]([A-Za-z]{3,}|\d{1,2})[\/-](\d{2,4})$/);
+  if(m){
+    const months={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
+    let mo=isNaN(Number(m[2]))?months[m[2].slice(0,3).toUpperCase()]:Number(m[2]);
+    let y=Number(m[3]); if(y<100)y+=2000;
+    return {y:y,m:mo,d:Number(m[1])};
+  }
+  m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m)return {y:Number(m[1]),m:Number(m[2]),d:Number(m[3])};
+  const d=new Date(s);
+  return isNaN(d)?null:{y:d.getFullYear(),m:d.getMonth()+1,d:d.getDate()};
+}
+function formatDateDisplay(v){const p=dateParts(v); if(!p)return txt(v); const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p.m-1]; return `${String(p.d).padStart(2,'0')}/${mon}/${p.y}`}
+function formatDateISO(v){const p=dateParts(v); if(!p)return ''; return `${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`}
+function daysFromToday(iso){if(!iso)return null; const m=txt(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m)return null; const target=Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3])); const now=new Date(); const today=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()); return Math.round((target-today)/86400000);}
+function normalizeHeader(v){return up(v).replace(/[^A-Z0-9]+/g,' ').trim()} function isBlankRow(r){return !r||r.every(v=>txt(v)==='')}
+function findHeaderRow(rows){for(let i=0;i<Math.min(rows.length,15);i++){const joined=(rows[i]||[]).map(normalizeHeader).join(' | '); if(joined.includes('TRADE STATUS')&&(joined.includes('BUYER NAME')||joined.includes('SAP SO NO')||joined.includes('CONTRACT')))return i;} return 1;}
+function parseMisRows(rows){
+  const headerIndex=findHeaderRow(rows);
+  const parsed=[];
+  // IMPORTANT: these column numbers are Excel-style 1-based columns from the MIS 2026 sheet.
+  // Previous version was accidentally reading them as zero-based JS indexes, which caused wrong KPIs
+  // such as NC being shown as KOR, ETA counted as BL number, and min qty counted as sales qty.
+  const col=(r,c)=>cell(r,c-1);
+  for(let i=headerIndex+1;i<rows.length;i++){
+    const r=rows[i];
+    if(isBlankRow(r))continue;
+    const contractNo=cleanCell(col(r,24))||cleanCell(col(r,6))||cleanCell(col(r,22)); // X / F / V
+    const buyer=cleanCell(col(r,25))||cleanCell(col(r,7)); // Y / G
+    const blNo=cleanCell(col(r,58))||cleanCell(col(r,10)); // BF / J
+    const hasCore=contractNo||buyer||blNo||cleanCell(col(r,1))||numCell(col(r,29));
+    if(!hasCore)continue;
+    parsed.push({
+      row:i+1,
+      tradeStatus:cleanCell(col(r,1)),
+      contractKOR:numCell(col(r,2)),
+      contractNC:numCell(col(r,3)),
+      commodity:cleanCell(col(r,4)),
+      position:cleanCell(col(r,5)),
+      sapSORef:cleanCell(col(r,6)),
+      buyer,
+      buyerTop:cleanCell(col(r,7)),
+      origin:cleanCell(col(r,8)),
+      destination:cleanCell(col(r,9)),
+      topBLNo:cleanCell(col(r,10)),
+      eta:formatDateDisplay(col(r,12)),
+      etaISO:formatDateISO(col(r,12)),
+      oblLocation:cleanCell(col(r,13)),
+      hbl:cleanCell(col(r,14)),
+      certLocation:cleanCell(col(r,15)),
+      negoBanking:cleanCell(col(r,16)),
+      originUpdates:cleanCell(col(r,17)),
+      updates:cleanCell(col(r,18)),
+      addendums:cleanCell(col(r,19)),
+      todayRemark:cleanCell(col(r,20)),
+      dealTicketDate:formatDateDisplay(col(r,21)),
+      sapDealTicket:cleanCell(col(r,22)),
+      salesContractDate:formatDateDisplay(col(r,23)),
+      contractNo,
+      buyerOfficial:cleanCell(col(r,25)),
+      shipmentPeriod:cleanCell(col(r,26)),
+      lds:formatDateDisplay(col(r,27)),
+      ldsISO:formatDateISO(col(r,27)),
+      tolerance:numCell(col(r,28)),
+      salesQty:numCell(col(r,29)),
+      minQty:numCell(col(r,30)),
+      uom:cleanCell(col(r,31)),
+      salesPrice:numCell(col(r,32)),
+      contractValue:numCell(col(r,33)),
+      salesInco:cleanCell(col(r,34)),
+      paymentType:cleanCell(col(r,35)),
+      advPct:numCell(col(r,36)),
+      secondPmtPct:numCell(col(r,37)),
+      fnfPct:numCell(col(r,38)),
+      ptDays:cleanCell(col(r,39)),
+      valencyPoc:cleanCell(col(r,40)),
+      broker:cleanCell(col(r,41)),
+      brokerage:numCell(col(r,42)),
+      lcNo:cleanCell(col(r,43)),
+      lcIssueDate:formatDateDisplay(col(r,44)),
+      lcExpiryDate:formatDateDisplay(col(r,45)),
+      ldsAsPerLC:formatDateDisplay(col(r,46)),
+      bank:cleanCell(col(r,47)),
+      advDateContract:formatDateDisplay(col(r,48)),
+      advAmt:numCell(col(r,49)),
+      advDate:formatDateDisplay(col(r,50)),
+      siCertBagSharedDate:formatDateDisplay(col(r,51))||formatDateDisplay(col(r,55)),
+      lotNo:cleanCell(col(r,52)),
+      importerAddress:cleanCell(col(r,53))||cleanCell(col(r,56)),
+      buyerBankDetails:cleanCell(col(r,54))||cleanCell(col(r,57)),
+      blNo,
+      shipBLNo:cleanCell(col(r,58)),
+      sob:formatDateDisplay(col(r,59)),
+      sobISO:formatDateISO(col(r,59)),
+      stuffedNetWt:numCell(col(r,60)),
+      blNetWt:numCell(col(r,61)),
+      containerType:cleanCell(col(r,62)),
+      etdPol:formatDateDisplay(col(r,63)),
+      etdPolISO:formatDateISO(col(r,63)),
+      contsQty:numCell(col(r,64)),
+      etd:formatDateDisplay(col(r,65))||formatDateDisplay(col(r,11)),
+      etdISO:formatDateISO(col(r,65))||formatDateISO(col(r,11)),
+      transhipmentEta:cleanCell(col(r,66)),
+      // Trader-risk ETA = MIS Final ETA, Column BO.
+      finalEta:formatDateDisplay(col(r,67)),
+      finalEtaISO:formatDateISO(col(r,67)),
+      pol:cleanCell(col(r,68)),
+      pod:cleanCell(col(r,69)),
+      shippingLine:cleanCell(col(r,70)),
+      freeDays:cleanCell(col(r,71)),
+      vessel:cleanCell(col(r,72)),
+      voyage:cleanCell(col(r,73)),
+      salesInvNo:cleanCell(col(r,74)),
+      salesInvDate:formatDateDisplay(col(r,75)),
+      salesInvAmt:numCell(col(r,76)),
+      finalBLDraft:formatDateDisplay(col(r,77))||cleanCell(col(r,77)),
+      finalBLDraftISO:formatDateISO(col(r,77)),
+      oblScanDate:formatDateDisplay(col(r,78)),
+      oblScanISO:formatDateISO(col(r,78)),
+      oblDHLOriginToSG:cleanCell(col(r,79)),
+      oblRcvdSIG:formatDateDisplay(col(r,80)),
+      oblRcvdSIGISO:formatDateISO(col(r,80)),
+      oblDHLSIGToDest:cleanCell(col(r,81)),
+      oblRcvdDest:formatDateDisplay(col(r,82)),
+      oblRcvdDestISO:formatDateISO(col(r,82)),
+      oblLocationDetail:cleanCell(col(r,83)),
+      oblDHLToVietnam:cleanCell(col(r,84)),
+      oblRcvdVietnam:formatDateDisplay(col(r,85)),
+      certScanDate:formatDateDisplay(col(r,86)),
+      certScanISO:formatDateISO(col(r,86)),
+      certDHL:cleanCell(col(r,87)),
+      certRcvdDest:formatDateDisplay(col(r,88)),
+      certStatus:cleanCell(col(r,89)),
+      negoBankName:cleanCell(col(r,90)),
+      negoDate:formatDateDisplay(col(r,91)),
+      negoDateISO:formatDateISO(col(r,91)),
+      bankAwb:cleanCell(col(r,92)),
+      negoDocsBuyerBankDate:formatDateDisplay(col(r,93)),
+      negoDocsBuyerBankISO:formatDateISO(col(r,93)),
+      negoStatus:cleanCell(col(r,94)),
+      finalPaymentAmt:numCell(col(r,95)),
+      finalPaymentDate:formatDateDisplay(col(r,96)),
+      vinaRbsReport:cleanCell(col(r,97)),
+      landedQty:numCell(col(r,98)),
+      qtyDiff:numCell(col(r,99)),
+      landedKOR:numCell(col(r,104)),
+      varianceKOR:numCell(col(r,105)),
+      landedNC:numCell(col(r,106)),
+      fnfClaim:numCell(col(r,118)),
+      netBillValue:numCell(col(r,119)),
+      netPayables:numCell(col(r,121)),
+      netReceivables:numCell(col(r,122)),
+      fnfInteraction:cleanCell(col(r,128)),
+      fnfSapStatus:cleanCell(col(r,129)),
+      closeOpen:cleanCell(col(r,130)),
+      qualityReportDate:formatDateDisplay(col(r,132)),
+      loadedQty:numCell(col(r,133)),
+      loadedKOR:numCell(col(r,134)),
+      loadedNC:numCell(col(r,135)),
+      moist:numCell(col(r,136)),
+      supplier:cleanCell(col(r,140)),
+      purchaseQty:numCell(col(r,142)),
+      purchaseRate:numCell(col(r,143)),
+      purchaseInco:cleanCell(col(r,147)),
+      cashflowStatus:cleanCell(col(r,153)),
+      freightAmt:numCell(col(r,154)),
+      freightPerMt:numCell(col(r,155)),
+      cycleFreightDraftBL:numCell(col(r,165)),
+      cycleInsuranceSOB:numCell(col(r,166)),
+      cycleOBLCopySOB:numCell(col(r,167)),
+      cycleBankNegoSOB:numCell(col(r,168)),
+      cycleCertCopySOB:numCell(col(r,169)),
+      cycleETDETA:numCell(col(r,170)),
+      cycleETAFNF:numCell(col(r,171)),
+      sapStatus:cleanCell(col(r,185)),
+      sapRemarks:cleanCell(col(r,186))
+    });
+  }
+  return parsed;
+}
+function sum(rows,key){return rows.reduce((a,r)=>a+n(r[key]),0)} function count(rows,pred){return rows.filter(pred).length} function weightedAvg(rows,valueKey,weightKey){let num=0,den=0; rows.forEach(r=>{if(n(r[valueKey])>0){const w=n(r[weightKey])||1; num+=n(r[valueKey])*w; den+=w}}); return den?num/den:0} function groupBy(rows,keyFn){return rows.reduce((m,r)=>{const k=keyFn(r)||'Unmapped'; (m[k]||(m[k]=[])).push(r); return m;},{})}
+function canonicalDestination(v){const s=up(v); if(s.includes('INDIA')||s.includes('TUTICORIN')||s.includes('KOLKATA')||s.includes('MUNDRA')||s.includes('MANGALORE')||s.includes('NHAVA')||s.includes('CHENNAI'))return 'INDIA'; if(s.includes('VIETNAM')||s.includes('VIET NAM')||s.includes('HCMC')||s.includes('CAI MEP')||s.includes('HAI PHONG'))return 'VIETNAM'; return txt(v)||'Unmapped'}
+function isSailed(r){return has(r.sob)||has(r.etd)||/SAILED|OBL|ETA|LANDED|DISCHARGED|TRADE CLOSED/i.test(txt(r.tradeStatus))}
+function routeText(r){return `${r.pol||r.origin||'-'} → ${r.pod||r.destination||'-'}`}
+function destinationText(r){return up([r.destination,r.pod].join(' '))}
+function destinationHint(r){
+  const d=destinationText(r);
+  if(d.includes('INDIA'))return 'INDIA';
+  if(d.includes('VIETNAM')||d.includes('VIET NAM'))return 'VIETNAM';
+  return d;
+}
+function statusIndicatesDestination(text,r){
+  const s=up(text); if(!s)return false;
+  const dest=destinationHint(r);
+  const ports=up([r.pod,r.destination].join(' ')).split(/[^A-Z0-9]+/).filter(x=>x.length>=4);
+  if(/AT DEST|DESTINATION|RCVD DATE AT DEST|RECEIVED AT DEST|DEST\b|RELEASED|ARRIVED/i.test(s))return true;
+  if(dest&&dest!=='UNMAPPED'&&s.includes(dest))return true;
+  if(ports.some(p=>s.includes(p)))return true;
+  if(/\bINDIA\b|\bVIETNAM\b|VIET NAM|MUNDRA|MANGALORE|TUTICORIN|KOLKATA|NHAVA|CHENNAI|HAI PHONG|HCMC|CAI MEP/i.test(s))return true;
+  return false;
+}
+function oblAtDestination(r){return has(r.oblRcvdDest)||has(r.oblRcvdVietnam)||statusIndicatesDestination([r.oblLocation,r.oblLocationDetail,r.oblDHLSIGToDest,r.oblDHLToVietnam].join(' '),r)}
+function certAtDestination(r){return has(r.certRcvdDest)||statusIndicatesDestination([r.certLocation,r.certStatus].join(' '),r)}
+function negoAtBuyerBank(r){const s=up([r.negoStatus,r.negoBanking].join(' ')); return has(r.negoDocsBuyerBankDate)||/DOCS AT BUYER|BUYER BANK RCVD|RECEIVED AT BUYER|BANK RECEIVED|DOCS AT BANK|PRESENTED TO BANK|NEGO DONE|NEGOTIATION DONE|EXPORT DOCS PRESENTED/i.test(s)}
+function docOBLReceived(r){return has(r.oblScanDate)||has(r.oblRcvdSIG)||has(r.oblRcvdDest)||has(r.oblRcvdVietnam)||oblAtDestination(r)||/RCVD|RECEIVED|COURIER|DHL|SIG|DEST/i.test(up(r.oblLocation)+up(r.oblLocationDetail))}
+function oblPending(r){return isSailed(r)&&!docOBLReceived(r)}
+function docCertReceived(r){return has(r.certScanDate)||has(r.certDHL)||has(r.certRcvdDest)||certAtDestination(r)||/RCVD|RECEIVED|COURIER|DHL|DEST/i.test(up(r.certLocation)+up(r.certStatus))}
+function certPending(r){return isSailed(r)&&!docCertReceived(r)}
+function negoPending(r){return docOBLReceived(r)&&!has(r.negoDate)&&!negoAtBuyerBank(r)&&!/DONE|COMPLETE|RECEIVED|PRESENTED/i.test(up(r.negoStatus)+up(r.negoBanking))}
+const STAGE_ORDER=[
+  'Entry Pending',
+  'Deal Ticket Rcvd / SC Pending',
+  'SC Raised / Advance Pending',
+  'Advance Rcvd / SI Pending',
+  'SI Sent / Shipment Awaited',
+  'Stuffed / Yet to Sail',
+  'Sailed / OBL & Certs Pending',
+  'OBL Scan Recd / Nego Pending',
+  'Exp Dox Presented to Bank / Pmt Pending',
+  'Final Pmt Recd / FNF Pending',
+  'FNF Reconciliation Ongoing',
+  'FNF Settlement Due',
+  'Trade Closed'
+];
+const STAGE_UI={
+  'Entry Pending':{label:'Entry Pending',sub:'Row not fully updated'},
+  'Deal Ticket Rcvd / SC Pending':{label:'Deal Ticket Received',sub:'Sales contract pending'},
+  'SC Raised / Advance Pending':{label:'SC Raised',sub:'Advance payment pending'},
+  'Advance Rcvd / SI Pending':{label:'Advance Received',sub:'Shipping instruction pending'},
+  'SI Sent / Shipment Awaited':{label:'SI Sent',sub:'Shipment allocation pending'},
+  'Stuffed / Yet to Sail':{label:'Stuffed',sub:'Sailing awaited'},
+  'Sailed / OBL & Certs Pending':{label:'Sailed',sub:'OBL / certificates pending'},
+  'OBL Scan Recd / Nego Pending':{label:'OBL Scan Received',sub:'Negotiation pending'},
+  'Exp Dox Presented to Bank / Pmt Pending':{label:'Docs Presented to Bank',sub:'Payment pending'},
+  'Final Pmt Recd / FNF Pending':{label:'Final Payment Received',sub:'F&F pending'},
+  'FNF Reconciliation Ongoing':{label:'F&F Reconciliation',sub:'Under review'},
+  'FNF Settlement Due':{label:'F&F Settlement Due',sub:'Settlement pending'},
+  'Trade Closed':{label:'Trade Closed',sub:'Execution completed'}
+};
+function stageLabel(s){return (STAGE_UI[s]&&STAGE_UI[s].label)||s||'-'}
+function stageSub(s){return (STAGE_UI[s]&&STAGE_UI[s].sub)||'Mapped from MIS Column A'}
+function openStageLogic(){renderStageLogic(); $('stageLogicModal').classList.add('open')}
+function closeStageLogic(){const el=$('stageLogicModal'); if(el)el.classList.remove('open')}
+function renderStageLogic(){
+  const grid=$('stageLogicGrid'); if(!grid)return;
+  grid.innerHTML=STAGE_ORDER.map((s,i)=>`<div class="logic-row"><b>${i+1}</b><div><strong>${escapeHTML(stageLabel(s))}</strong><span>${escapeHTML(stageSub(s))}</span></div></div>`).join('');
+}
+function stageFromColumnA(value){
+  const raw=txt(value).replace(/\s+/g,' ').trim();
+  const s=up(raw);
+  if(!s) return 'Unmapped / Blank';
+  if(s.includes('TRADE CLOSED')||s==='CLOSE') return 'Trade Closed';
+  if(s.includes('FNF SETTLEMENT')) return 'FNF Settlement Due';
+  if(s.includes('FNF RECONCILLATION')||s.includes('FNF RECONCILIATION')) return 'FNF Reconciliation Ongoing';
+  if(s.includes('FINAL PMT')||s.includes('FINAL PAYMENT')) return 'Final Pmt Recd / FNF Pending';
+  if(s.includes('EXP DOX')||s.includes('EXPORT DOC')) return 'Exp Dox Presented to Bank / Pmt Pending';
+  if(s.includes('OBL SCAN')) return 'OBL Scan Recd / Nego Pending';
+  if(s.includes('SAILED')&&(s.includes('OBL')||s.includes('CERT'))) return 'Sailed / OBL & Certs Pending';
+  if(s.includes('STUFFED')&&(s.includes('YET TO SAIL')||s.includes('SAIL'))) return 'Stuffed / Yet to Sail';
+  if(s.includes('SI SENT')) return 'SI Sent / Shipment Awaited';
+  if(s.includes('ADVANCE')&&(s.includes('SI PENDING')||s.includes('RCVD'))) return 'Advance Rcvd / SI Pending';
+  if(s.includes('SC RAISED')&&s.includes('ADVANCE')) return 'SC Raised / Advance Pending';
+  if(s.includes('DEAL TICKET')&&s.includes('SC PENDING')) return 'Deal Ticket Rcvd / SC Pending';
+  if(s.includes('ENTRY PENDING')) return 'Entry Pending';
+  return raw;
+}
+function stage(r){return stageFromColumnA(r.tradeStatus)}
+function renderBars(id,items,total){const max=total||Math.max(1,...items.map(x=>x.value)); $(id).innerHTML=items.map(x=>`<div class="bar-row"><div class="bar-label" title="${escapeHTML(x.label)}">${escapeHTML(x.label)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(x.value/max)*100)}%"></div></div><div class="bar-val">${fmt1.format(x.value)}${x.suffix||''}</div></div>`).join('')||'<div class="empty">No data</div>';}
+function renderKPIs(){const rows=DATA; const items=[['Contracts',rows.length,'Active MIS rows'],['Sales Qty',fmt.format(sum(rows,'salesQty'))+' MT','Contracted qty'],['BL Qty',fmt1.format(sum(rows,'blNetWt'))+' MT','As per BL net wt'],['Containers',fmt.format(sum(rows,'contsQty')),'Container count'],['BL Available',count(rows,r=>has(r.blNo)),'BL no. mapped'],['OBL Control',count(rows,docOBLReceived),'Received / in transit'],['Cert Pending',count(rows,certPending),'Sailed but cert not ready'],['Avg Contract KOR',fmt1.format(weightedAvg(rows,'contractKOR','salesQty')),'Weighted by sales qty']]; $('kpiGrid').innerHTML=items.map(i=>`<div class="card kpi"><div class="label">${i[0]}</div><div class="value">${i[1]}</div><div class="sub">${i[2]}</div></div>`).join('')}
+function positionBucket(r){
+  const s=up([r.position,r.closeOpen,r.tradeStatus].join(' '));
+  if(/CLOSED|CLOSE POSITION|CLOSED POSITION|TRADE CLOSED/.test(s)) return 'Close';
+  if(/SHORT/.test(s)) return 'Short';
+  if(/LONG/.test(s)) return 'Long';
+  return 'Open/Pending';
+}
+function renderDestinationBars(){
+  const groups=groupBy(DATA,r=>canonicalDestination(r.destination||r.pod));
+  const items=Object.entries(groups).map(([k,rs])=>({label:k,qty:sum(rs,'salesQty'),containers:sum(rs,'contsQty'),contracts:rs.length})).sort((a,b)=>b.qty-a.qty);
+  const max=Math.max(1,...items.map(x=>x.qty));
+  const target=$('destinationExposure');
+  if(target){
+    target.innerHTML=items.map(x=>`<div class="dest-row"><div class="dest-name"><b>${escapeHTML(x.label)}</b><span>${fmt.format(x.contracts)} contracts</span></div><div class="dest-bar"><i style="width:${Math.min(100,(x.qty/max)*100)}%"></i></div><div class="dest-value"><b>${fmt.format(x.qty)} MT</b><span>${fmt.format(x.containers)} containers</span></div></div>`).join('')||'<div class="empty">No destination data after upload.</div>';
+  }
+  renderPositionMix();
+}
+function renderPositionMix(){
+  const colors={'Close':'#2563eb','Short':'#06b6d4','Long':'#f59e0b','Open/Pending':'#e5e7eb'};
+  const order=['Close','Short','Long','Open/Pending'];
+  const counts=Object.fromEntries(order.map(k=>[k,0]));
+  DATA.forEach(r=>{const k=positionBucket(r); counts[k]=(counts[k]||0)+1;});
+  const total=Math.max(1,DATA.length);
+  let acc=0; const degrees={}; order.forEach(k=>{degrees[k]=counts[k]/total*360;});
+  const close=degrees['Close']; const short=degrees['Short']; const long=degrees['Long'];
+  const donut=$('positionDonut');
+  if(donut){
+    donut.style.setProperty('--close',`${close}deg`);
+    donut.style.setProperty('--short',`${short}deg`);
+    donut.style.setProperty('--long',`${long}deg`);
+    donut.innerHTML=`<div><b>${fmt.format(DATA.length)}</b><span>contracts</span></div>`;
+  }
+  const legend=$('positionLegend');
+  if(legend){
+    legend.innerHTML=order.map(k=>`<div class="legend-pill"><span class="legend-dot" style="background:${colors[k]}"></span>${escapeHTML(k)}: ${fmt.format(counts[k]||0)}</div>`).join('');
+  }
+}
+function stageOrderForData(){
+  const present=[...new Set(DATA.map(stage).filter(Boolean))];
+  const unknown=present.filter(s=>!STAGE_ORDER.includes(s)).sort();
+  // Always show the full Column A formula path, even if a future status is currently zero.
+  return STAGE_ORDER.concat(unknown);
+}
+function renderStageFlow(){
+  const order=stageOrderForData();
+  const counts=Object.fromEntries(order.map(x=>[x,0]));
+  DATA.forEach(r=>{const s=stage(r); counts[s]=(counts[s]||0)+1;});
+  $('stageFlow').innerHTML=order.map((s,i)=>{
+    const c=counts[s]||0;
+    return `<div class="flow-step ${c===0?'zero':''}"><div class="stage-top"><b>${fmt.format(c)}</b><span class="stage-no">${i+1}</span></div><span class="stage-label">${escapeHTML(stageLabel(s))}</span><small class="stage-sub">${escapeHTML(stageSub(s))}</small></div>`;
+  }).join('')||'<div class="empty">No Column A trade status found.</div>';
+}
+function buildFilters(){const dests=[...new Set(DATA.map(r=>canonicalDestination(r.destination||r.pod)).filter(Boolean))].sort(); $('destFilter').innerHTML='<option value="all">All destinations</option>'+dests.map(d=>`<option>${escapeHTML(d)}</option>`).join(''); const stages=stageOrderForData(); $('statusFilter').innerHTML='<option value="all">All execution stages</option>'+stages.map(d=>`<option value="${escapeHTML(d)}">${escapeHTML(stageLabel(d))}</option>`).join('')}
+function clearSearch(){$('globalSearch').value=''; refreshShipmentTable()} function refreshShipmentTable(){let rows=DATA.slice(); const q=up($('globalSearch')?.value||''); const d=$('destFilter')?.value||'all'; const st=$('statusFilter')?.value||'all'; const doc=$('docFilter')?.value||'all'; if(q)rows=rows.filter(r=>up([r.contractNo,r.sapDealTicket,r.blNo,r.hbl,r.buyer,r.vessel,r.destination,r.pod].join(' ')).includes(q)); if(d!=='all')rows=rows.filter(r=>canonicalDestination(r.destination||r.pod)===d); if(st!=='all')rows=rows.filter(r=>stage(r)===st); if(doc==='oblPending')rows=rows.filter(oblPending); if(doc==='certPending')rows=rows.filter(certPending); if(doc==='negoPending')rows=rows.filter(negoPending); if(doc==='landed')rows=rows.filter(r=>has(r.landedQty)); filteredRows=rows; $('resultCount').innerText=fmt.format(rows.length); const head=['Contract','Buyer','Destination','BL','HBL','Vessel','LDS','ETD','ETA','Sales Qty','BL Qty','KOR','Execution Stage','Doc Risk']; const body=rows.slice(0,500).map(r=>`<tr><td class="mono">${escapeHTML(r.contractNo||r.sapDealTicket||'-')}</td><td>${escapeHTML(r.buyer||'-')}</td><td>${escapeHTML(canonicalDestination(r.destination||r.pod))}</td><td class="mono">${escapeHTML(r.blNo||'-')}</td><td class="mono">${escapeHTML(r.hbl||'-')}</td><td>${escapeHTML(r.vessel||'-')}</td><td>${escapeHTML(r.lds||'-')}</td><td>${escapeHTML(r.etd||'-')}</td><td>${escapeHTML(r.finalEta||r.eta||'-')}</td><td>${fmt1.format(r.salesQty)}</td><td>${fmt1.format(r.blNetWt)}</td><td>${r.contractKOR?fmt1.format(r.contractKOR):'-'}</td><td><span class="pill neutral">${escapeHTML(stageLabel(stage(r)))}</span></td><td>${oblPending(r)?'<span class="pill bad">OBL</span> ':''}${certPending(r)?'<span class="pill warn">Cert</span> ':''}${negoPending(r)?'<span class="pill warn">Nego</span> ':''}</td></tr>`).join(''); $('shipTable').innerHTML=`<thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body||`<tr><td colspan="${head.length}" class="empty">No matching rows</td></tr>`}</tbody>`}
+function downloadCSV(rows,cols,filename){const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>`"${txt(r[c]).replace(/"/g,'""')}"`).join(','))).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href)} function exportCSV(){downloadCSV(filteredRows.length?filteredRows:DATA,['contractNo','buyer','destination','blNo','hbl','vessel','lds','etd','eta','salesQty','blNetWt','contractKOR','loadedKOR','landedKOR'],'lct_shipments.csv')}
+function renderDocs(){const rows=DATA; const items=[['BL numbers',count(rows,r=>has(r.blNo))],['OBL control',count(rows,docOBLReceived)],['OBL pending',count(rows,oblPending)],['Cert control',count(rows,docCertReceived)],['Cert pending',count(rows,certPending)],['Nego done',count(rows,r=>has(r.negoDate)||/NEGO/i.test(txt(r.negoStatus)))]]; $('docStrip').innerHTML=items.map(x=>`<div class="strip-item"><span>${x[0]}</span><b>${fmt.format(x[1])}</b></div>`).join(''); renderBars('oblBars',[{label:'OBL scanned / received',value:count(rows,docOBLReceived)},{label:'OBL pending after sailing',value:count(rows,oblPending)},{label:'OBL received at destination',value:count(rows,r=>has(r.oblRcvdDest))}],rows.length); renderBars('certBars',[{label:'Final cert scan received',value:count(rows,r=>has(r.certScanDate))},{label:'Cert received/control',value:count(rows,docCertReceived)},{label:'Cert pending after sailing',value:count(rows,certPending)}],rows.length); renderBars('negoBars',[{label:'Nego date available',value:count(rows,r=>has(r.negoDate))},{label:'Docs in buyer bank',value:count(rows,r=>has(r.negoDocsBuyerBankDate))},{label:'Nego pending after OBL',value:count(rows,negoPending)}],rows.length); const exc=rows.filter(r=>oblPending(r)||certPending(r)||negoPending(r)).slice(0,35); $('docExceptions').innerHTML=exc.map(r=>`<div class="risk-item"><div><strong>${escapeHTML(r.contractNo||'-')} · ${escapeHTML(r.buyer||'-')}</strong><p>BL ${escapeHTML(r.blNo||'-')} · ${escapeHTML(canonicalDestination(r.destination||r.pod))} · ${escapeHTML(r.vessel||'-')}</p></div><span class="pill ${oblPending(r)?'bad':'warn'}">${oblPending(r)?'OBL':certPending(r)?'Cert':'Nego'}</span></div>`).join('')||'<div class="empty">No document exceptions based on current logic.</div>'}
+function renderQuality(){const rows=DATA; const cards=[['Contract KOR',fmt1.format(weightedAvg(rows,'contractKOR','salesQty')),'Weighted by sales qty'],['Loaded Qty',fmt1.format(sum(rows,'loadedQty'))+' MT','Quality report loaded qty'],['Loaded KOR',fmt1.format(weightedAvg(rows,'loadedKOR','loadedQty')),'Weighted by loaded qty'],['Landed KOR',fmt1.format(weightedAvg(rows,'landedKOR','landedQty')),'Weighted by landed qty']]; $('qualityCards').innerHTML=cards.map(c=>`<div class="quality-card"><span class="muted">${c[0]}</span><div class="big">${c[1]}</div><p class="muted">${c[2]}</p></div>`).join(''); const groups=groupBy(rows,r=>canonicalDestination(r.destination||r.pod)); const items=Object.entries(groups).map(([k,rs])=>({label:k,value:weightedAvg(rs,'loadedKOR','loadedQty')||weightedAvg(rs,'contractKOR','salesQty')})).filter(x=>x.value); renderBars('qualityBars',items,Math.max(1,...items.map(x=>x.value))); const ex=rows.filter(r=>(r.varianceKOR&&Math.abs(r.varianceKOR)>1)||(!has(r.qualityReportDate)&&isSailed(r))||(!r.loadedKOR&&isSailed(r))).slice(0,30); $('qualityExceptions').innerHTML=ex.map(r=>`<div class="risk-item"><div><strong>${escapeHTML(r.contractNo||'-')} · ${escapeHTML(r.buyer||'-')}</strong><p>Contract KOR ${r.contractKOR?fmt1.format(r.contractKOR):'-'} · Loaded KOR ${r.loadedKOR?fmt1.format(r.loadedKOR):'-'} · Landed KOR ${r.landedKOR?fmt1.format(r.landedKOR):'-'}</p></div><span class="pill warn">Quality</span></div>`).join('')||'<div class="empty">No quality exceptions based on current logic.</div>'}
+function renderBuyers(){const q=up($('buyerSearch')?.value||''); const groups=groupBy(DATA,r=>r.buyer||'Unmapped buyer'); const arr=Object.entries(groups).map(([buyer,rs])=>({buyer,rows:rs,qty:sum(rs,'salesQty'),blQty:sum(rs,'blNetWt'),cont:sum(rs,'contsQty'),obl:count(rs,docOBLReceived),certPending:count(rs,certPending),kor:weightedAvg(rs,'loadedKOR','loadedQty')||weightedAvg(rs,'landedKOR','landedQty')||weightedAvg(rs,'contractKOR','salesQty')})).filter(x=>!q||up(x.buyer).includes(q)).sort((a,b)=>b.qty-a.qty).slice(0,60); $('buyerCards').innerHTML=arr.map(x=>`<div class="mini-card"><h4>${escapeHTML(x.buyer)}</h4><p>${x.rows.length} contracts · ${fmt1.format(x.qty)} MT sales qty · ${fmt1.format(x.cont)} containers</p><div class="metrics-line"><div class="metric-box"><span>BL Qty</span><b>${fmt1.format(x.blQty)}</b></div><div class="metric-box"><span>OBL Ctrl</span><b>${x.obl}</b></div><div class="metric-box"><span>Cert Risk</span><b>${x.certPending}</b></div></div><p class="muted">Avg KOR: <b>${x.kor?fmt1.format(x.kor):'-'}</b></p></div>`).join('')||'<div class="empty">No buyer found</div>'}
+function exportBuyerCSV(){const groups=groupBy(DATA,r=>r.buyer||'Unmapped buyer'); const rows=Object.entries(groups).map(([buyer,rs])=>({buyer,contracts:rs.length,qty:sum(rs,'salesQty'),blQty:sum(rs,'blNetWt'),containers:sum(rs,'contsQty'),oblControl:count(rs,docOBLReceived),certPending:count(rs,certPending)})); downloadCSV(rows,['buyer','contracts','qty','blQty','containers','oblControl','certPending'],'lct_buyers.csv')}
+function renderForwarders(){const vessels=Object.entries(groupBy(DATA,r=>r.vessel||'Unmapped vessel')).map(([k,rs])=>({vessel:k,rows:rs,qty:sum(rs,'blNetWt'),dest:[...new Set(rs.map(r=>canonicalDestination(r.destination||r.pod)))].join(', ')})).filter(x=>x.vessel!=='Unmapped vessel').sort((a,b)=>b.qty-a.qty).slice(0,20); $('vesselList').innerHTML=vessels.map(v=>`<div class="risk-item"><div><strong>${escapeHTML(v.vessel)}</strong><p>${v.rows.length} contracts · ${fmt1.format(v.qty)} MT BL qty · ${escapeHTML(v.dest)}</p></div><span class="pill info">Vessel</span></div>`).join('')||'<div class="empty">No vessel data found</div>'; const ship=Object.entries(groupBy(DATA,r=>r.shippingLine||'Unmapped')).map(([k,rs])=>({label:k,value:rs.length})).sort((a,b)=>b.value-a.value).slice(0,12); renderBars('shippingBars',ship,DATA.length)}
+const TOP_TRADER_RISKS=[
+  {
+    id:'etaBanking', rank:1, level:'bad', title:'ETA Near, Banking Pending',
+    sub:'Final ETA ≤15 days; docs not confirmed at buyer bank', why:'Payment and release cycle may get delayed if banking is not safe before arrival.',
+    test:r=>{const d=daysFromToday(r.finalEtaISO); return d!==null && d<=15 && d>=-5 && !negoAtBuyerBank(r);}
+  },
+  {
+    id:'sobObl', rank:2, level:'bad', title:'SOB +7, OBL Copy Pending',
+    sub:'SOB crossed 7 days; OBL scan/copy missing', why:'Banking cannot move cleanly without OBL control.',
+    test:r=>{const d=daysFromToday(r.sobISO); return d!==null && d<=-7 && !docOBLReceived(r);}
+  },
+  {
+    id:'sobCert', rank:3, level:'warn', title:'SOB +7, Cert Scan Pending',
+    sub:'SOB crossed 7 days; final cert scan missing', why:'Export document set remains incomplete.',
+    test:r=>{const d=daysFromToday(r.sobISO); return d!==null && d<=-7 && !docCertReceived(r);}
+  },
+  {
+    id:'ldsNoSailing', rank:4, level:'bad', title:'LDS Near, No Sailing',
+    sub:'LDS ≤10 days; no SOB / sailing update', why:'Shipment obligation and contract timeline risk.',
+    test:r=>{const d=daysFromToday(r.ldsISO); return d!==null && d<=10 && d>=-3 && !has(r.sob) && !/SAILED|OBL|DOCS AT BANK|EXP DOX|TRADE CLOSED/i.test(up(r.tradeStatus));}
+  },
+  {
+    id:'etaRelease', rank:5, level:'warn', title:'ETA Near, Release Docs Risk',
+    sub:'Final ETA ≤10 days; release checkpoints not fully safe', why:'Buyer clearance can be delayed unless OBL, certificates and buyer-bank documents are safe.',
+    test:r=>{const d=daysFromToday(r.finalEtaISO); const releaseSafe=oblAtDestination(r)&&certAtDestination(r)&&negoAtBuyerBank(r); return d!==null && d<=10 && d>=-5 && !releaseSafe;}
+  }
+];
+function traderRiskMatches(riskId='all'){
+  const defs=riskId==='all'?TOP_TRADER_RISKS:TOP_TRADER_RISKS.filter(d=>d.id===riskId);
+  const out=[];
+  DATA.forEach(r=>defs.forEach(def=>{if(def.test(r))out.push({def,r,level:def.level,type:def.title,rank:def.rank})}));
+  return out.sort((a,b)=>a.rank-b.rank || (daysFromToday(a.r.finalEtaISO)??999)-(daysFromToday(b.r.finalEtaISO)??999));
+}
+function renderTraderRadarCards(targetId){
+  const el=$(targetId); if(!el)return;
+  if(!DATA.length){el.innerHTML='<div class="radar-empty">Upload and analyze MIS to view trader risk radar.</div>';return;}
+  el.innerHTML=TOP_TRADER_RISKS.map(def=>{
+    const matches=DATA.filter(r=>def.test(r));
+    const qty=sum(matches,'salesQty');
+    const active=ACTIVE_RISK_ID===def.id?' active':'';
+    return `<div class="radar-tile ${def.level}${active}" onclick="openRiskDetail('${def.id}')" title="Tap to view contracts behind this issue"><div class="radar-top"><div class="radar-count">${fmt.format(matches.length)}</div><span class="radar-rank">#${def.rank}</span></div><h4>${escapeHTML(def.title)}</h4><p>${escapeHTML(def.sub)}</p><small>${fmt1.format(qty)} MT exposure</small><span class="tap-hint">View issue →</span></div>`;
+  }).join('');
+}
+function openRiskDetail(riskId){
+  ACTIVE_RISK_ID=riskId||'all';
+  renderRisk();
+  setSection('risk');
+  setTimeout(()=>{const el=$('riskRegisterCard'); if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+function showAllRisks(){openRiskDetail('all')}
+function openShipmentSearch(term){
+  setSection('shipments');
+  const input=$('globalSearch'); if(input){input.value=term||''; refreshShipmentTable(); input.focus();}
+  setTimeout(()=>{const table=$('shipTable'); if(table)table.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+function dayDistanceLabel(iso, mode){
+  const d=daysFromToday(iso);
+  if(d===null)return '';
+  if(mode==='since')return d<0?`${Math.abs(d)} days after`:(d===0?'today':`${d} days ahead`);
+  if(d<0)return `${Math.abs(d)} days overdue`;
+  if(d===0)return 'today';
+  return `${d} days left`;
+}
+function statusCell(text,tone='neutral'){
+  return `<b class="${tone}">${escapeHTML(text||'-')}</b>`;
+}
+function oblLiveStatus(r){
+  const loc=txt(r.oblLocationDetail||r.oblLocation);
+  if(oblAtDestination(r))return {text:`At destination${loc?' · '+loc:''}`,tone:'ok'};
+  if(has(r.oblRcvdSIG))return {text:`At SIG · ${r.oblRcvdSIG}`,tone:'watch'};
+  if(has(r.oblDHLSIGToDest)||has(r.oblDHLToVietnam)||has(r.oblDHLOriginToSG))return {text:'In courier movement',tone:'watch'};
+  if(has(r.oblScanDate))return {text:`Scan received · ${r.oblScanDate}`,tone:'watch'};
+  if(has(r.sobISO)&&daysFromToday(r.sobISO)<=-7)return {text:'Pending after SOB +7',tone:'bad'};
+  if(isSailed(r))return {text:'Pending after sailing',tone:'bad'};
+  return {text:'Not due / pre-sailing',tone:'neutral'};
+}
+function certLiveStatus(r){
+  const loc=txt(r.certStatus||r.certLocation);
+  if(certAtDestination(r))return {text:`At destination${loc?' · '+loc:''}`,tone:'ok'};
+  if(has(r.certDHL))return {text:'In courier movement',tone:'watch'};
+  if(has(r.certScanDate))return {text:`Scan received · ${r.certScanDate}`,tone:'watch'};
+  if(has(r.sobISO)&&daysFromToday(r.sobISO)<=-7)return {text:'Pending after SOB +7',tone:'bad'};
+  if(isSailed(r))return {text:'Pending after sailing',tone:'bad'};
+  return {text:'Not due / pre-sailing',tone:'neutral'};
+}
+function negoLiveStatus(r){
+  if(negoAtBuyerBank(r))return {text:`Docs at buyer bank${r.negoDocsBuyerBankDate?' · '+r.negoDocsBuyerBankDate:''}`,tone:'ok'};
+  if(has(r.negoDate))return {text:`Nego presented · ${r.negoDate}`,tone:'watch'};
+  if(has(r.negoStatus))return {text:r.negoStatus,tone:/PENDING|AWAIT|HOLD/i.test(r.negoStatus)?'bad':'watch'};
+  if(docOBLReceived(r))return {text:'Pending after OBL control',tone:'bad'};
+  if(isSailed(r))return {text:'Awaiting OBL/certs before nego',tone:'watch'};
+  return {text:'Not started',tone:'neutral'};
+}
+function fmtMoney(v){return n(v)?'$'+fmt1.format(n(v)):'-'}
+
+function riskRows(){return traderRiskMatches(ACTIVE_RISK_ID)}
+function ctxChip(label,value){return `<span>${escapeHTML(label)}: ${escapeHTML(value||'-')}</span>`}
+function checkpointHTML(label,state,headline,detail=''){
+  const stateLabel=state==='safe'?'Safe':state==='pending'?'Pending':state==='time'?'Time pressure':'Watch';
+  return `<div class="checkpoint ${state}"><span>${escapeHTML(label)} · ${stateLabel}</span><b>${escapeHTML(headline||'-')}</b>${detail?`<small>${escapeHTML(detail)}</small>`:''}</div>`;
+}
+function cleanStatusDetail(text){return txt(text).replace(/\s+/g,' ').trim()}
+function riskDiagnosis(x){
+  const r=x.r, id=x.def.id;
+  const etaDelta=dayDistanceLabel(r.finalEtaISO);
+  const ldsDelta=dayDistanceLabel(r.ldsISO);
+  const sobDelta=dayDistanceLabel(r.sobISO,'since');
+  const oblS=oblLiveStatus(r), certS=certLiveStatus(r), negoS=negoLiveStatus(r);
+  const safe=[], pending=[], watch=[], time=[];
+  let issue='Checkpoint exception', why=x.def.why, action='Review and close the pending checkpoint.', tone=x.level==='bad'?'bad':'warn';
+  if(id==='etaBanking'){
+    issue='Nego docs not confirmed at buyer bank';
+    why=`Final ETA is ${etaDelta||'near'}; buyer-bank confirmation is still not safe.`;
+    action='Push documentation/banking team for buyer-bank receipt confirmation. If docs are not presented, move nego immediately.';
+    pending.push(['Banking checkpoint','Buyer bank confirmation missing', cleanStatusDetail(negoS.text)]);
+    if(docOBLReceived(r))safe.push(['OBL control','Available for banking', cleanStatusDetail(oblS.text)]); else watch.push(['OBL control','Dependency not fully safe', cleanStatusDetail(oblS.text)]);
+    if(docCertReceived(r))safe.push(['Certificate set','Available for banking', cleanStatusDetail(certS.text)]); else watch.push(['Certificate set','Dependency not fully safe', cleanStatusDetail(certS.text)]);
+    time.push(['Final ETA',r.finalEta||'-',etaDelta]);
+  } else if(id==='sobObl'){
+    issue='OBL scan/copy not received after sailing';
+    why=`SOB is ${sobDelta||'older than tolerance'}; OBL control is still not safe.`;
+    action='Follow origin / forwarder / shipping line for OBL scan or confirmed copy, then move banking/courier process.';
+    pending.push(['OBL checkpoint','OBL scan/copy missing', cleanStatusDetail(oblS.text)]);
+    safe.push(['SOB','Sailing completed', r.sob||'-']);
+    if(docCertReceived(r))safe.push(['Certificate set','Already available', cleanStatusDetail(certS.text)]);
+    time.push(['SOB ageing',r.sob||'-',sobDelta]);
+  } else if(id==='sobCert'){
+    issue='Final certificate scan not received after sailing';
+    why=`SOB is ${sobDelta||'older than tolerance'}; final certificate set is still not safe.`;
+    action='Escalate Phyto / Fumi / COO final scan with origin documentation team and confirm courier plan.';
+    pending.push(['Certificate checkpoint','Final cert scan/control missing', cleanStatusDetail(certS.text)]);
+    safe.push(['SOB','Sailing completed', r.sob||'-']);
+    if(docOBLReceived(r))safe.push(['OBL control','Already available', cleanStatusDetail(oblS.text)]);
+    time.push(['SOB ageing',r.sob||'-',sobDelta]);
+  } else if(id==='ldsNoSailing'){
+    issue='SOB / sailing confirmation missing near LDS';
+    why=`LDS is ${ldsDelta||'near'} and shipment has not moved to sailed status.`;
+    action='Trader to decide: push sailing, amend LDS, reallocate cargo, or escalate shipment obligation risk.';
+    pending.push(['Shipment checkpoint','SOB not updated', 'No sailing confirmation available']);
+    const st=stageLabel(stage(r));
+    watch.push(['Current execution stage',st,stageSub(stage(r))]);
+    time.push(['LDS',r.lds||'-',ldsDelta]);
+  } else if(id==='etaRelease'){
+    const missing=[];
+    if(!oblAtDestination(r)){pending.push(['OBL destination','OBL not confirmed at destination', cleanStatusDetail(oblS.text)]); missing.push('OBL at destination');}
+    else safe.push(['OBL destination','At destination', cleanStatusDetail(oblS.text)]);
+    if(!certAtDestination(r)){pending.push(['Certificate destination','Cert not confirmed at destination', cleanStatusDetail(certS.text)]); missing.push('Cert at destination');}
+    else safe.push(['Certificate destination','At destination', cleanStatusDetail(certS.text)]);
+    if(!negoAtBuyerBank(r)){pending.push(['Buyer bank','Nego docs not at buyer bank', cleanStatusDetail(negoS.text)]); missing.push('Nego docs at buyer bank');}
+    else safe.push(['Buyer bank','Docs at buyer bank', cleanStatusDetail(negoS.text)]);
+    issue=missing.length===1?`${missing[0]} not safe`:`Release set not safe: ${missing.join(' + ')}`;
+    why=`Final ETA is ${etaDelta||'near'}; release is safe only when OBL + certificates + buyer-bank docs are all confirmed.`;
+    action='Close the pending release checkpoint before buyer clearance. Do not chase already-safe checkpoints again.';
+    time.push(['Final ETA',r.finalEta||'-',etaDelta]);
+  }
+  return {issue,why,action,tone,safe,pending,watch,time,oblS,certS,negoS};
+}
+function renderRisk(){
+  const allMatches=traderRiskMatches('all');
+  const matches=traderRiskMatches(ACTIVE_RISK_ID);
+  renderTraderRadarCards('traderRadar');
+  renderTraderRadarCards('traderRadarRisk');
+  const byId=Object.fromEntries(TOP_TRADER_RISKS.map(def=>[def.id,DATA.filter(r=>def.test(r)).length]));
+  const activeDef=TOP_TRADER_RISKS.find(d=>d.id===ACTIVE_RISK_ID);
+  const drill=$('riskDrillHeader');
+  if(drill){
+    drill.innerHTML=activeDef
+      ? `<div><b>Showing issue: ${escapeHTML(activeDef.title)}</b><span>${escapeHTML(activeDef.why)} · ${fmt.format(matches.length)} contracts · ${fmt1.format(sum(matches.map(x=>x.r),'salesQty'))} MT exposure</span></div><button class="btn small secondary" onclick="showAllRisks()">Show all risks</button>`
+      : `<div><b>Showing all Top-5 trader issues</b><span>Tap a radar card above to drill into one exception type. ${fmt.format(allMatches.length)} contract-level exceptions currently visible.</span></div><span class="risk-selected-chip">All risks</span>`;
+  }
+  const kpis=[
+    ['Top-5 alerts',allMatches.length,'Total contract-level exceptions'],
+    ['High priority',allMatches.filter(x=>x.level==='bad').length,'Immediate trader action'],
+    ['ETA banking risk',byId.etaBanking||0,'Final ETA ≤15, buyer-bank not safe'],
+    ['OBL delay',byId.sobObl||0,'SOB +7, OBL pending'],
+    ['Cert delay',byId.sobCert||0,'SOB +7, cert pending'],
+    ['LDS pressure',byId.ldsNoSailing||0,'LDS ≤10, not sailed'],
+    ['Release risk',byId.etaRelease||0,'Final ETA ≤10, release not safe'],
+    ['Selected exposure',fmt1.format(sum(matches.map(x=>x.r),'salesQty'))+' MT',activeDef?activeDef.title:'All matched risks']
+  ];
+  $('riskKpis').innerHTML=kpis.map(i=>`<div class="card kpi"><div class="label">${i[0]}</div><div class="value">${i[1]}</div><div class="sub">${i[2]}</div></div>`).join('');
+  $('riskList').innerHTML=matches.slice(0,100).map(x=>{
+    const r=x.r;
+    const searchTerm=escapeHTML(r.contractNo||r.blNo||r.buyer||'');
+    const dx=riskDiagnosis(x);
+    const route=routeText(r);
+    const context=[
+      ctxChip('Contract',r.contractNo||r.sapDealTicket||'-'),
+      ctxChip('BL',r.blNo||r.topBLNo||'-'),
+      ctxChip('Route',route),
+      ctxChip('Contract Qty',`${fmt1.format(r.salesQty||0)} MT`),
+      ctxChip('BL Qty',`${fmt1.format(r.blNetWt||0)} MT`),
+      ctxChip('KOR',r.contractKOR?fmt1.format(r.contractKOR):'-'),
+      ctxChip('Sales price',fmtMoney(r.salesPrice)),
+      ctxChip('Final ETA',r.finalEta||'-')
+    ].join('');
+    const pendingHTML=dx.pending.map(p=>checkpointHTML(p[0],'pending',p[1],p[2])).join('');
+    const safeHTML=dx.safe.map(p=>checkpointHTML(p[0],'safe',p[1],p[2])).join('');
+    const watchHTML=dx.watch.map(p=>checkpointHTML(p[0],'watch',p[1],p[2])).join('');
+    const timeHTML=dx.time.map(p=>checkpointHTML(p[0],'time',p[1],p[2])).join('');
+    const fine=dx.safe.length?`<div class="other-fine">✓ Other relevant checkpoints look fine</div>`:'';
+    return `<div class="risk-item mgmt-detail"><div class="risk-main"><div class="risk-head"><strong><span class="risk-rank">#${x.rank}</span>${escapeHTML(x.type)} · ${escapeHTML(r.contractNo||r.sapDealTicket||'-')}</strong><p>${escapeHTML(r.buyer||'-')} · ${escapeHTML(canonicalDestination(r.destination||r.pod))} · ${escapeHTML(r.vessel||'-')}</p></div><div class="risk-meta-line">${context}</div><div class="diagnosis-panel ${dx.tone==='bad'?'':'warn'}"><span>Issue checkpoint</span><b>${escapeHTML(dx.issue)}</b><p>${escapeHTML(dx.why)}</p></div>${fine}<div class="checkpoint-board">${pendingHTML}${safeHTML}${watchHTML}${timeHTML}</div><div class="action-row"><b>Next action</b><span>${escapeHTML(dx.action)}</span></div></div><div class="risk-actions"><span class="pill ${x.level}">${x.level==='bad'?'High':'Watch'}</span><button class="btn small ghost" onclick="openShipmentSearch('${searchTerm}')">Open row</button></div></div>`;
+  }).join('')||'<div class="empty">No Top-5 trader risk exceptions based on current MIS.</div>';
+  $('riskSegmentCards').innerHTML=`<div class="mini-card"><h4>Management reading</h4><p>This is now an exception system: each card shows the broken checkpoint, why it matters now, safe checkpoints, and one next action.</p><div class="metrics-line"><div class="metric-box"><span>ETA/Banks</span><b>${byId.etaBanking||0}</b></div><div class="metric-box"><span>OBL/Cert</span><b>${(byId.sobObl||0)+(byId.sobCert||0)}</b></div><div class="metric-box"><span>LDS/Release</span><b>${(byId.ldsNoSailing||0)+(byId.etaRelease||0)}</b></div></div></div><div class="mini-card" style="margin-top:12px"><h4>How to use</h4><p>Tap a radar card to see only that issue. Use <b>Open row</b> only when you need full MIS detail beyond the management exception view.</p></div>`;
+}
+
+
+let CENTRAL_TASKS=[];
+const ORIGIN_CATEGORIES=['Shipment Deadline','BL / OBL','Certificate','Stuffing / Quality','Release / Destination','Banking','Data'];
+function centralOrigin(r){return cleanStatusDetail(r.origin||r.pol||'Unmapped Origin')||'Unmapped Origin'}
+function makeOriginBase(r){return {r,row:r.row,contractNo:r.contractNo||r.sapDealTicket||'-',blNo:r.blNo||r.topBLNo||'-',buyer:r.buyer||'-',origin:centralOrigin(r),destination:canonicalDestination(r.destination||r.pod),route:routeText(r),monitor:'Central Desk'}}
+function ageDays(iso){const d=daysFromToday(iso); return d===null?null:-d;}
+function daysLeft(iso){return daysFromToday(iso)}
+function isFutureOrToday(days){return days!==null&&days>=0}
+function dueTextFromDays(days,base){
+  if(days===null||days===undefined)return base||'-';
+  if(days<0)return `${Math.abs(days)} days overdue`;
+  if(days===0)return 'Due today';
+  return `${days} days left`;
+}
+function ageText(age,base){
+  if(age===null||age===undefined)return base||'-';
+  if(age===0)return 'Today';
+  if(age>0)return `${age} days ago`;
+  return `In ${Math.abs(age)} days`;
+}
+function priorityFromDays(days,defaultPriority='Medium'){
+  if(days===null||days===undefined)return defaultPriority;
+  if(days<0)return 'High';
+  if(days<=5)return 'High';
+  if(days<=15)return 'Medium';
+  return defaultPriority;
+}
+function taskKey(t){return [t.contractNo,t.blNo,t.category,t.issueType||t.checkpoint].join('|')}
+function pushTask(list,map,t){
+  const key=taskKey(t); if(map.has(key))return; map.add(key);
+  list.push({...t,issueType:t.issueType||t.checkpoint,monitor:t.monitor||'Central Desk'});
+}
+function addOriginTask(tasks,keys,r,opts){pushTask(tasks,keys,{...makeOriginBase(r),...opts});}
+function buildOriginDueTasks(){
+  const tasks=[]; const keys=new Set();
+  DATA.forEach(r=>{
+    const ldsDays=daysLeft(r.ldsISO);
+    const sobAge=ageDays(r.sobISO);
+    const draftAge=ageDays(r.finalBLDraftISO||'');
+    const oblAge=ageDays(r.oblScanISO);
+    const certAge=ageDays(r.certScanISO);
+    const finalEtaDays=daysLeft(r.finalEtaISO);
+    const hasDraft=has(r.finalBLDraft);
+    const hasSOB=has(r.sob);
+    const hasOBL=has(r.oblScanDate);
+    const hasCert=has(r.certScanDate);
+    const hasCertDHL=has(r.certDHL);
+    const hasOBLDHL=has(r.oblDHLOriginToSG)||has(r.oblDHLSIGToDest)||has(r.oblDHLToVietnam);
+    const hasStuffingReport=has(r.qualityReportDate)||has(r.loadedQty)||has(r.loadedKOR)||has(r.loadedNC)||has(r.moist);
+
+    // 1. LDS near but no Draft BL: origin shipment obligation watch
+    if(ldsDays!==null&&ldsDays<=15&&!hasDraft&&stage(r)!=='Trade Closed'){
+      addOriginTask(tasks,keys,r,{priority:ldsDays<=5||ldsDays<0?'High':'Medium',category:'Shipment Deadline',issueType:'LDS near, Draft BL not received',owner:'Origin / Forwarder',checkpoint:'Draft BL not received against approaching LDS',dueBasis:r.lds?`LDS ${r.lds}`:'LDS approaching',days:ldsDays,cycleBase:'LDS to draft BL',delayDays:ldsDays<0?Math.abs(ldsDays):0,action:'Central Desk to push origin for shipment plan, draft BL visibility and SOB timeline.'});
+    }
+    // Extra: LDS near but no SOB, more serious obligation risk
+    if(ldsDays!==null&&ldsDays<=10&&!hasSOB&&stage(r)!=='Trade Closed'){
+      addOriginTask(tasks,keys,r,{priority:ldsDays<=5||ldsDays<0?'High':'Medium',category:'Shipment Deadline',issueType:'LDS near, SOB not updated',owner:'Origin Ops / Forwarder',checkpoint:'SOB not updated against approaching LDS',dueBasis:r.lds?`LDS ${r.lds}`:'LDS near',days:ldsDays,cycleBase:'LDS to SOB',delayDays:ldsDays<0?Math.abs(ldsDays):0,action:'Central Desk to obtain sailing confirmation or escalate shipment default risk.'});
+    }
+    // ETD passed but no SOB
+    const etdDays=daysLeft(r.etdISO||r.etdPolISO);
+    if(etdDays!==null&&etdDays<0&&!hasSOB&&stage(r)!=='Trade Closed'){
+      addOriginTask(tasks,keys,r,{priority:'High',category:'Shipment Deadline',issueType:'ETD passed, SOB missing',owner:'Origin Ops / Forwarder',checkpoint:'ETD passed but SOB not updated',dueBasis:r.etd?`ETD ${r.etd}`:'ETD passed',days:etdDays,cycleBase:'ETD to SOB',delayDays:Math.abs(etdDays),misCycle:r.cycleETDETA,action:'Central Desk to confirm vessel sailing status and update SOB immediately.'});
+    }
+    // 2. SOB +3 but no draft BL
+    if(hasSOB&&sobAge!==null&&sobAge>=3&&!hasDraft){
+      addOriginTask(tasks,keys,r,{priority:sobAge>=5?'High':'Medium',category:'BL / OBL',issueType:'SOB +3, Draft BL pending',owner:'Origin / Forwarder',checkpoint:'Draft BL pending after SOB',dueBasis:r.sob?`SOB ${r.sob}`:'SOB done',days:-sobAge,cycleBase:'SOB to draft BL',ageDays:sobAge,slaDays:3,delayDays:Math.max(0,sobAge-3),action:'Central Desk to follow origin / forwarder for draft BL copy today.'});
+    }
+    // 2b. SOB +7 but no Final OBL scan/copy
+    if(hasSOB&&sobAge!==null&&sobAge>=7&&!hasOBL){
+      addOriginTask(tasks,keys,r,{priority:'High',category:'BL / OBL',issueType:'SOB +7, Final OBL pending',owner:'Origin Docs / Forwarder',checkpoint:'Final OBL scan/copy pending after SOB',dueBasis:r.sob?`SOB ${r.sob}`:'SOB +7',days:-sobAge,cycleBase:'SOB to OBL scan',ageDays:sobAge,slaDays:7,delayDays:Math.max(0,sobAge-7),misCycle:r.cycleOBLCopySOB,action:'Central Desk to escalate OBL scan/copy with origin, forwarder and shipping line.'});
+    }
+    // 3. SOB +7 but no cert scan
+    if(hasSOB&&sobAge!==null&&sobAge>=7&&!hasCert){
+      addOriginTask(tasks,keys,r,{priority:'High',category:'Certificate',issueType:'SOB +7, Certs pending',owner:'Origin Docs',checkpoint:'Final certificate scan pending after SOB',dueBasis:r.sob?`SOB ${r.sob}`:'SOB +7',days:-sobAge,cycleBase:'SOB to cert scan',ageDays:sobAge,slaDays:7,delayDays:Math.max(0,sobAge-7),misCycle:r.cycleCertCopySOB,action:'Central Desk to push origin for Phyto / Fumi / COO final scan and reason for delay.'});
+    }
+    // 4. Cert received but no DHL after 3 days
+    if(hasCert&&certAge!==null&&certAge>=3&&!hasCertDHL){
+      addOriginTask(tasks,keys,r,{priority:certAge>=5?'High':'Medium',category:'Certificate',issueType:'Cert received, DHL pending',owner:'Origin Docs',checkpoint:'Cert received but courier / DHL number not updated',dueBasis:r.certScanDate?`Cert scan ${r.certScanDate}`:'Cert received',days:-certAge,cycleBase:'Cert scan to DHL',ageDays:certAge,slaDays:3,delayDays:Math.max(0,certAge-3),action:'Central Desk to obtain cert DHL number / courier proof from origin.'});
+    }
+    // 5. Final BL/OBL received but no DHL after 3 days
+    if(hasOBL&&oblAge!==null&&oblAge>=3&&!hasOBLDHL){
+      addOriginTask(tasks,keys,r,{priority:oblAge>=5?'High':'Medium',category:'BL / OBL',issueType:'Final OBL received, DHL pending',owner:'Origin Docs / Forwarder',checkpoint:'Final OBL received but courier / DHL number not updated',dueBasis:r.oblScanDate?`OBL scan ${r.oblScanDate}`:'Final OBL received',days:-oblAge,cycleBase:'OBL scan to DHL',ageDays:oblAge,slaDays:3,delayDays:Math.max(0,oblAge-3),misCycle:r.cycleOBLCopySOB,action:'Central Desk to obtain OBL DHL number / courier proof and track dispatch.'});
+    }
+    // 6. SOB +3 but no stuffing / quality report
+    if(hasSOB&&sobAge!==null&&sobAge>=3&&!hasStuffingReport){
+      addOriginTask(tasks,keys,r,{priority:sobAge>=5?'High':'Medium',category:'Stuffing / Quality',issueType:'SOB +3, Stuffing report pending',owner:'Origin Ops / Quality',checkpoint:'Stuffing / quality report not received after SOB',dueBasis:r.sob?`SOB ${r.sob}`:'SOB +3',days:-sobAge,cycleBase:'SOB to stuffing report',ageDays:sobAge,slaDays:3,delayDays:Math.max(0,sobAge-3),action:'Central Desk to collect stuffing report with qty, KOR, NC and moisture details.'});
+    }
+    // Release-facing origin pending: ETA near but OBL/cert not at destination
+    if(finalEtaDays!==null&&finalEtaDays<=10&&stage(r)!=='Trade Closed'){
+      if(hasOBL&&!oblAtDestination(r)){
+        addOriginTask(tasks,keys,r,{priority:finalEtaDays<=5||finalEtaDays<0?'High':'Medium',category:'Release / Destination',issueType:'ETA near, OBL not at destination',owner:'Docs / Courier / Forwarder',checkpoint:'OBL not confirmed at destination before ETA',dueBasis:r.finalEta?`Final ETA ${r.finalEta}`:'ETA near',days:finalEtaDays,cycleBase:'Final ETA release pressure',delayDays:finalEtaDays<0?Math.abs(finalEtaDays):0,action:'Central Desk to track courier movement and confirm OBL destination receipt.'});
       }
-
-      function renderTable(records) {
-        document.getElementById('resultCount').textContent = `${records.length} record${records.length === 1 ? '' : 's'}`;
-        if (!records.length) {
-          document.getElementById('tableHost').innerHTML = '<div class="empty">No matching trade positions found.</div>';
-          return;
-        }
-
-        const rows = records.map((item) => `
-          <tr>
-            <td><strong>${safe(item.tradeId)}</strong><br><span class="meta">${safe(item.commodity)}</span></td>
-            <td>${safe(item.supplier)}<br><span class="meta">${safe(item.origin)}</span></td>
-            <td>${safe(item.buyer)}</td>
-            <td>${number.format(Number(item.quantityMt || 0))}</td>
-            <td>${item.contractPriceUsd ? currency.format(Number(item.contractPriceUsd)) : '—'}</td>
-            <td>${safe(item.shipmentWindow)}</td>
-            <td><span class="pill ${compactClass(item.status)}">${safe(item.status)}</span></td>
-            <td><span class="pill ${compactClass(item.riskLevel)}">${safe(item.riskLevel)}</span></td>
-          </tr>
-        `).join('');
-
-        document.getElementById('tableHost').innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>Trade</th><th>Supplier / Origin</th><th>Buyer</th><th>Qty MT</th>
-                <th>USD/MT</th><th>Shipment</th><th>Status</th><th>Risk</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        `;
+      if(hasCert&&!certAtDestination(r)){
+        addOriginTask(tasks,keys,r,{priority:finalEtaDays<=5||finalEtaDays<0?'High':'Medium',category:'Release / Destination',issueType:'ETA near, Cert not at destination',owner:'Origin Docs / Courier',checkpoint:'Certificate set not confirmed at destination before ETA',dueBasis:r.finalEta?`Final ETA ${r.finalEta}`:'ETA near',days:finalEtaDays,cycleBase:'Final ETA release pressure',delayDays:finalEtaDays<0?Math.abs(finalEtaDays):0,action:'Central Desk to track cert courier movement and confirm destination receipt.'});
       }
+    }
+    // Data hygiene for origin follow-up reliability
+    if(stage(r)!=='Trade Closed'&&(!r.origin||!r.contractNo||!r.buyer||!r.salesQty)){
+      addOriginTask(tasks,keys,r,{priority:'Low',category:'Data',issueType:'Core MIS data gap',owner:'Origin / Central Desk',checkpoint:'Core tracker data missing',dueBasis:'Missing origin / contract / buyer / qty',days:null,cycleBase:'Data completeness',delayDays:null,action:'Central Desk to correct the tracker field before relying on automated exception logic.'});
+    }
+  });
+  const rank={High:1,Medium:2,Low:3};
+  return tasks.sort((a,b)=>(rank[a.priority]||9)-(rank[b.priority]||9) || (a.days??999)-(b.days??999) || txt(a.origin).localeCompare(txt(b.origin)) || txt(a.issueType).localeCompare(txt(b.issueType)));
+}
+function buildCentralTasks(){return buildOriginDueTasks()}
+function filteredCentralTasks(){
+  const q=up($('centralSearch')?.value||'');
+  const origin=$('centralOriginFilter')?.value||'all';
+  const cat=$('centralCategoryFilter')?.value||'all';
+  const issue=$('centralIssueFilter')?.value||'all';
+  const pri=$('centralPriorityFilter')?.value||'all';
+  return CENTRAL_TASKS.filter(t=>{
+    const hay=up([t.contractNo,t.blNo,t.buyer,t.origin,t.destination,t.category,t.issueType,t.checkpoint,t.action,t.owner].join(' '));
+    return (!q||hay.includes(q))&&(origin==='all'||t.origin===origin)&&(cat==='all'||t.category===cat)&&(issue==='all'||t.issueType===issue)&&(pri==='all'||t.priority===pri);
+  });
+}
+function setCentralOriginFilter(origin){const el=$('centralOriginFilter'); if(el){el.value=origin||'all'} renderCentralDeskTable();}
+function setCentralCategoryFilter(cat){const el=$('centralCategoryFilter'); if(el){el.value=cat||'all'} renderCentralDeskTable();}
+function setCentralIssueFilter(issue){const el=$('centralIssueFilter'); if(el){el.value=issue||'all'} renderCentralDeskTable();}
+function setCentralPriorityFilter(p){const el=$('centralPriorityFilter'); if(el){el.value=p||'all'} renderCentralDeskTable();}
+function clearCentralFilters(){
+  ['centralSearch','centralOriginFilter','centralCategoryFilter','centralIssueFilter','centralPriorityFilter'].forEach(id=>{const el=$(id); if(!el)return; if(el.tagName==='SELECT')el.value='all'; else el.value='';});
+  renderCentralDeskTable();
+}
+function updateCentralSelectedStrip(rows){
+  const origin=$('centralOriginFilter')?.value||'all'; const cat=$('centralCategoryFilter')?.value||'all'; const issue=$('centralIssueFilter')?.value||'all'; const pri=$('centralPriorityFilter')?.value||'all';
+  const parts=[origin==='all'?'All origins':`Origin: ${origin}`,cat==='all'?'All buckets':`Bucket: ${cat}`,issue==='all'?'All issue types':`Issue: ${issue}`,pri==='all'?'All priorities':`Priority: ${pri}`,`${fmt.format(rows.length)} visible`];
+  if($('centralSelectedStrip'))$('centralSelectedStrip').innerText=parts.join(' · ');
+}
+function renderCentralDesk(){
+  CENTRAL_TASKS=buildCentralTasks();
+  const high=CENTRAL_TASKS.filter(t=>t.priority==='High').length;
+  const med=CENTRAL_TASKS.filter(t=>t.priority==='Medium').length;
+  const overdue=CENTRAL_TASKS.filter(t=>typeof t.days==='number'&&t.days<0).length;
+  const bl=CENTRAL_TASKS.filter(t=>t.category==='BL / OBL').length;
+  const cert=CENTRAL_TASKS.filter(t=>t.category==='Certificate').length;
+  const shipment=CENTRAL_TASKS.filter(t=>t.category==='Shipment Deadline').length;
+  $('centralDeskKpis').innerHTML=[['Total origin dues',CENTRAL_TASKS.length,'Open origin-side checkpoints',''],['Critical / High',high,'Escalate same day','high'],['Overdue',overdue,'Time breached','high'],['BL / OBL',bl,'Draft BL, OBL, DHL','warn'],['Cert dues',cert,'Scan, DHL, destination','warn']].map(i=>`<div class="desk-kpi ${i[3]}"><span>${i[0]}</span><b>${fmt.format(i[1])}</b><small>${i[2]}</small></div>`).join('');
+  const selectedCat=$('centralCategoryFilter')?.value||'all';
+  $('centralCategoryCards').innerHTML=ORIGIN_CATEGORIES.map(c=>{const ts=CENTRAL_TASKS.filter(t=>t.category===c); const highCnt=ts.filter(t=>t.priority==='High').length; return `<div class="category-card ${highCnt?'critical':''} ${selectedCat===c?'active':''}" onclick="setCentralCategoryFilter('${escapeAttr(c)}')"><span>${escapeHTML(c)}</span><b>${fmt.format(ts.length)}</b><small>${highCnt?fmt.format(highCnt)+' critical':'No critical'}</small></div>`}).join('');
+  const originSelected=$('centralOriginFilter')?.value||'all';
+  const origins=Object.entries(groupBy(CENTRAL_TASKS,t=>t.origin)).map(([k,ts])=>({label:k,value:ts.length,high:ts.filter(t=>t.priority==='High').length})).sort((a,b)=>b.value-a.value).slice(0,16);
+  const max=Math.max(1,...origins.map(x=>x.value));
+  $('centralOriginLoad').innerHTML=origins.map(x=>`<div class="origin-line ${originSelected===x.label?'active':''}" onclick="setCentralOriginFilter('${escapeAttr(x.label)}')"><b title="${escapeHTML(x.label)}">${escapeHTML(x.label)}</b><div class="origin-track"><i style="width:${Math.min(100,x.value/max*100)}%"></i></div><small>${fmt.format(x.value)} due${x.high?` · ${fmt.format(x.high)} critical`:''}</small></div>`).join('')||'<div class="empty">No origin-wise pending dues.</div>';
+  const originOpts=['<option value="all">All origins</option>'].concat([...new Set(CENTRAL_TASKS.map(t=>t.origin))].sort().map(o=>`<option value="${escapeHTML(o)}">${escapeHTML(o)}</option>`));
+  const catOpts=['<option value="all">All issue buckets</option>'].concat(ORIGIN_CATEGORIES.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`));
+  const issueOpts=['<option value="all">All issue types</option>'].concat([...new Set(CENTRAL_TASKS.map(t=>t.issueType))].sort().map(i=>`<option value="${escapeHTML(i)}">${escapeHTML(i)}</option>`));
+  const oSel=$('centralOriginFilter'), cSel=$('centralCategoryFilter'), iSel=$('centralIssueFilter');
+  const oldO=oSel?.value||'all', oldC=cSel?.value||'all', oldI=iSel?.value||'all';
+  if(oSel){oSel.innerHTML=originOpts.join(''); oSel.value=[...oSel.options].some(o=>o.value===oldO)?oldO:'all'}
+  if(cSel){cSel.innerHTML=catOpts.join(''); cSel.value=[...cSel.options].some(o=>o.value===oldC)?oldC:'all'}
+  if(iSel){iSel.innerHTML=issueOpts.join(''); iSel.value=[...iSel.options].some(o=>o.value===oldI)?oldI:'all'}
+  renderCentralDeskTable();
+}
+function cycleStatusClass(t){if(t.delayDays===null||t.delayDays===undefined)return 'watch'; if(t.delayDays>0)return 'delay'; if(t.days!==undefined&&t.days!==null&&t.days<=5)return 'watch'; return 'ok'}
+function cycleSummary(t){
+  const bits=[];
+  if(t.cycleBase)bits.push(t.cycleBase);
+  if(t.ageDays!==undefined&&t.ageDays!==null)bits.push(`${t.ageDays}d elapsed`);
+  if(t.slaDays!==undefined&&t.slaDays!==null)bits.push(`SLA ${t.slaDays}d`);
+  if(t.delayDays!==undefined&&t.delayDays!==null){bits.push(t.delayDays>0?`Delay ${t.delayDays}d`:'Within SLA');}
+  else if(typeof t.days==='number')bits.push(dueTextFromDays(t.days,''));
+  if(t.misCycle!==undefined&&t.misCycle!==null&&t.misCycle!==0)bits.push(`MIS cycle ${fmt1.format(t.misCycle)}d`);
+  return bits.filter(Boolean).join(' · ')||'-';
+}
+function cycleChipHTML(t){const cls=cycleStatusClass(t); const label=(t.delayDays!==undefined&&t.delayDays!==null)?(t.delayDays>0?`Delay ${t.delayDays}d`:(typeof t.days==='number'?dueTextFromDays(t.days,'Within SLA'):'Within SLA')):(typeof t.days==='number'?dueTextFromDays(t.days,'Watch'):'Watch'); return `<span class="cycle-chip ${cls}">${escapeHTML(label)}</span><span class="cycle-detail">${escapeHTML(cycleSummary(t))}</span>`}
+function renderOriginFocus(rows){
+  const box=$('centralOriginFocus'); if(!box)return;
+  const origin=$('centralOriginFilter')?.value||'all';
+  if(origin==='all'){box.className='origin-focus empty'; box.innerHTML='Choose one origin to see focused dues, issue mix and cycle-time delay.'; return;}
+  const high=rows.filter(t=>t.priority==='High').length;
+  const delay=rows.filter(t=>t.delayDays>0).length;
+  const maxDelay=Math.max(0,...rows.map(t=>t.delayDays||0));
+  const cats=Object.entries(groupBy(rows,t=>t.category)).map(([k,ts])=>({k,count:ts.length,high:ts.filter(t=>t.priority==='High').length})).sort((a,b)=>b.count-a.count).slice(0,8);
+  box.className='origin-focus';
+  box.innerHTML=`<div class="origin-focus-head"><div><h4>${escapeHTML(origin)} · Origin Due Details</h4><p>Central Desk monitoring view for this origin only. Use the queue below to raise issue-wise follow-ups.</p></div><span class="pill ${high?'bad':'info'}">${fmt.format(high)} Critical</span></div><div class="origin-focus-grid"><div class="origin-focus-metric"><span>Total dues</span><b>${fmt.format(rows.length)}</b></div><div class="origin-focus-metric high"><span>Critical / High</span><b>${fmt.format(high)}</b></div><div class="origin-focus-metric"><span>With delay</span><b>${fmt.format(delay)}</b></div><div class="origin-focus-metric"><span>Max delay</span><b>${fmt.format(maxDelay)}d</b></div></div><div class="origin-focus-issues">${cats.map(c=>`<span class="issue-token ${c.high?'high':''}" onclick="setCentralCategoryFilter('${escapeAttr(c.k)}')">${escapeHTML(c.k)} · ${fmt.format(c.count)}${c.high?' / '+fmt.format(c.high)+' critical':''}</span>`).join('')||'<span class="issue-token">No dues for this origin</span>'}</div>`;
+}
 
-      function applyFilter() {
-        const term = document.getElementById('searchInput').value.trim().toLowerCase();
-        const records = !term ? state.records : state.records.filter((item) =>
-          Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(term))
-        );
-        renderKpis(records);
-        renderTable(records);
-      }
+const ORIGIN_MATRIX_COLUMNS=[
+  {key:'draftBL',label:'Draft BL pending (>3 days after SOB)',category:'BL / OBL',issueType:'SOB +3, Draft BL pending'},
+  {key:'stuffingReport',label:'Stuffing report pending (>3 days after SOB)',category:'Stuffing / Quality',issueType:'SOB +3, Stuffing report pending'},
+  {key:'certsPending',label:'Certs pending (>7 days after SOB)',category:'Certificate',issueType:'SOB +7, Certs pending'},
+  {key:'finalOBLPending',label:'Final OBL pending (>7 days after SOB)',category:'BL / OBL',issueType:'SOB +7, Final OBL pending'},
+  {key:'sobNotUpdated',label:'SOB not updated (LDS <15 days)',category:'Shipment Deadline',issueType:'LDS near, SOB not updated'},
+  {key:'certDHLPending',label:'Cert DHL pending (Cert received >2 days)',category:'Certificate',issueType:'Cert received, DHL pending'},
+  {key:'oblDHLPending',label:'OBL DHL pending (OBL received >2 days)',category:'BL / OBL',issueType:'Final OBL received, DHL pending'},
+  {key:'certNotDestination',label:'Cert not at destination (ETA in 15 days)',category:'Release / Destination',issueType:'ETA near, Cert not at destination'},
+  {key:'etaOblNotDestination',label:'ETA near, OBL not at destination',category:'Release / Destination',issueType:'ETA near, OBL not at destination'}
+];
+function cycleDelayText(age,sla,base){
+  const delay=Math.max(0,(age||0)-sla);
+  return delay>0 ? `${delay}d delayed` : `0d delay`;
+}
+function etaPressureText(days,label){
+  if(days===null||days===undefined)return `${label} date missing`;
+  if(days<0)return `${label} ${Math.abs(days)}d overdue`;
+  if(days===0)return `${label} due today`;
+  return `${label} in ${days}d`;
+}
+function originDueChecks(r){
+  const checks={};
+  const ldsDays=daysLeft(r.ldsISO);
+  const sobAge=ageDays(r.sobISO);
+  const oblAge=ageDays(r.oblScanISO);
+  const certAge=ageDays(r.certScanISO);
+  const finalEtaDays=daysLeft(r.finalEtaISO);
+  const hasDraft=has(r.finalBLDraft);
+  const hasSOB=has(r.sob);
+  const hasOBL=has(r.oblScanDate);
+  const hasCert=has(r.certScanDate);
+  const hasCertDHL=has(r.certDHL);
+  const hasOBLDHL=has(r.oblDHLOriginToSG)||has(r.oblDHLSIGToDest)||has(r.oblDHLToVietnam);
+  const hasStuffingReport=has(r.qualityReportDate)||has(r.loadedQty)||has(r.loadedKOR)||has(r.loadedNC)||has(r.moist);
+  const closed=stage(r)==='Trade Closed';
+  const put=(key,priority,title,detail)=>{const meta=ORIGIN_MATRIX_COLUMNS.find(c=>c.key===key)||{}; checks[key]={key,priority,title,detail,category:meta.category,issueType:meta.issueType};};
+  if(hasSOB&&sobAge!==null&&sobAge>=3&&!hasDraft){put('draftBL',sobAge>=5?'High':'Medium','Draft BL pending',cycleDelayText(sobAge,3,'SOB to draft BL'));}
+  if(hasSOB&&sobAge!==null&&sobAge>=3&&!hasStuffingReport){put('stuffingReport',sobAge>=5?'High':'Medium','Stuffing report pending',cycleDelayText(sobAge,3,'SOB to stuffing report'));}
+  if(hasSOB&&sobAge!==null&&sobAge>=7&&!hasCert){put('certsPending','High','Cert scan pending',cycleDelayText(sobAge,7,'SOB to cert scan'));}
+  if(hasSOB&&sobAge!==null&&sobAge>=7&&!hasOBL){put('finalOBLPending','High','Final OBL pending',cycleDelayText(sobAge,7,'SOB to OBL scan'));}
+  if(ldsDays!==null&&ldsDays<=15&&!hasSOB&&!closed){put('sobNotUpdated',ldsDays<=5||ldsDays<0?'High':'Medium','SOB not updated',etaPressureText(ldsDays,'LDS'));}
+  if(hasCert&&certAge!==null&&certAge>=3&&!hasCertDHL){put('certDHLPending',certAge>=5?'High':'Medium','Cert DHL pending',cycleDelayText(certAge,2,'Cert scan to DHL'));}
+  if(hasOBL&&oblAge!==null&&oblAge>=3&&!hasOBLDHL){put('oblDHLPending',oblAge>=5?'High':'Medium','OBL DHL pending',cycleDelayText(oblAge,2,'OBL scan to DHL'));}
+  if(finalEtaDays!==null&&finalEtaDays<=15&&hasCert&&!certAtDestination(r)&&!closed){put('certNotDestination',finalEtaDays<=7||finalEtaDays<0?'High':'Medium','Cert not at destination',etaPressureText(finalEtaDays,'Final ETA'));}
+  if(finalEtaDays!==null&&finalEtaDays<=15&&hasOBL&&!oblAtDestination(r)&&!closed){put('etaOblNotDestination',finalEtaDays<=7||finalEtaDays<0?'High':'Medium','OBL not at destination',etaPressureText(finalEtaDays,'Final ETA'));}
+  return checks;
+}
+function buildOriginDueMatrixRows(){
+  return DATA.map(r=>{const checks=originDueChecks(r); const issueList=Object.values(checks); const priority=issueList.some(x=>x.priority==='High')?'High':(issueList.some(x=>x.priority==='Medium')?'Medium':'Low'); return {r,checks,issueList,priority,origin:centralOrigin(r),contractNo:r.contractNo||r.sapDealTicket||'-',blNo:r.blNo||r.topBLNo||'-',buyer:r.buyer||'-',lds:r.lds||'-',sob:r.sob||'-'};}).filter(x=>x.issueList.length);
+}
+function filteredOriginDueMatrixRows(){
+  const q=up($('centralSearch')?.value||'');
+  const origin=$('centralOriginFilter')?.value||'all';
+  const cat=$('centralCategoryFilter')?.value||'all';
+  const issue=$('centralIssueFilter')?.value||'all';
+  const pri=$('centralPriorityFilter')?.value||'all';
+  return buildOriginDueMatrixRows().filter(x=>{
+    const hay=up([x.origin,x.contractNo,x.blNo,x.buyer,x.lds,x.sob,x.r.destination,x.r.pod,x.r.pol,x.issueList.map(i=>i.title+' '+i.detail+' '+i.issueType).join(' ')].join(' '));
+    const catMatch=cat==='all'||x.issueList.some(i=>i.category===cat);
+    const issueMatch=issue==='all'||x.issueList.some(i=>i.issueType===issue);
+    const priMatch=pri==='all'||x.priority===pri||x.issueList.some(i=>i.priority===pri);
+    return (!q||hay.includes(q))&&(origin==='all'||x.origin===origin)&&catMatch&&issueMatch&&priMatch;
+  });
+}
+function issueFlagHTML(check){
+  if(!check)return '<span class="matrix-ok">—</span>';
+  const cls=check.priority==='High'?'high':'medium';
+  return `<span class="matrix-flag ${cls}"><b>${escapeHTML(check.detail)}</b></span>`;
+}
+function renderCentralDeskTable(){
+  const rows=filteredOriginDueMatrixRows();
+  updateCentralSelectedStrip(rows);
+  $('centralResultCount').innerText=fmt.format(rows.length);
+  renderOriginFocus(filteredCentralTasks());
+  const head=['Origin','Contract no','LDS','BL No','SOB'].concat(ORIGIN_MATRIX_COLUMNS.map(c=>c.label));
+  const body=rows.slice(0,300).map(x=>{
+    const trClass=x.priority==='High'?'matrix-row-high row-high':(x.priority==='Medium'?'matrix-row-medium row-medium':'');
+    return `<tr class="${trClass}"><td><b class="matrix-key">${escapeHTML(x.origin)}</b><span class="matrix-sub">${escapeHTML(x.buyer)}</span></td><td><b class="mono">${escapeHTML(x.contractNo)}</b><span class="matrix-sub">${escapeHTML(x.r.vessel||'')}</span></td><td><b>${escapeHTML(x.lds)}</b></td><td><b class="mono">${escapeHTML(x.blNo)}</b></td><td><b>${escapeHTML(x.sob)}</b></td>${ORIGIN_MATRIX_COLUMNS.map(c=>`<td>${issueFlagHTML(x.checks[c.key])}</td>`).join('')}</tr>`;
+  }).join('');
+  $('centralDeskTable').innerHTML=`<thead><tr>${head.map(h=>`<th>${escapeHTML(h)}</th>`).join('')}</tr></thead><tbody>${body||`<tr><td colspan="${head.length}"><div class="empty">No origin dues under current filters.</div></td></tr>`}</tbody>`;
+  document.querySelectorAll('#centralCategoryCards .category-card').forEach(card=>card.classList.toggle('active',card.textContent.includes($('centralCategoryFilter')?.value||'__none__')&&($('centralCategoryFilter')?.value||'all')!=='all'));
+  document.querySelectorAll('#centralOriginLoad .origin-line').forEach(line=>line.classList.toggle('active',($('centralOriginFilter')?.value||'all')!=='all'&&line.textContent.includes($('centralOriginFilter')?.value||'__none__')));
+}
+function exportCentralDeskCSV(){
+  const rows=filteredOriginDueMatrixRows();
+  const headers=['Origin','Contract no','LDS','BL No','SOB'].concat(ORIGIN_MATRIX_COLUMNS.map(c=>c.label));
+  const csv=[headers].concat(rows.map(x=>[x.origin,x.contractNo,x.lds,x.blNo,x.sob].concat(ORIGIN_MATRIX_COLUMNS.map(c=>x.checks[c.key]?x.checks[c.key].detail:'')))).map(r=>r.map(v=>'"'+txt(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='origin_dues_matrix.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
 
-      async function loadData() {
-        try {
-          const response = await fetch('data/trade_eagle_eye.json', { cache: 'no-store' });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const payload = await response.json();
-          state.records = Array.isArray(payload.records) ? payload.records : [];
-          document.getElementById('sourceMeta').textContent = `Source: ${safe(payload.source)} • Generated: ${safe(payload.generatedAt)}`;
-          applyFilter();
-        } catch (error) {
-          document.getElementById('sourceMeta').textContent = `Unable to load data/trade_eagle_eye.json: ${error.message}`;
-          document.getElementById('tableHost').innerHTML = '<div class="empty">Dashboard data could not be loaded.</div>';
-        }
-      }
-
-      document.getElementById('searchInput').addEventListener('input', applyFilter);
-      loadData();
-    </script>
-  </body>
+function renderDataMap(){const items=[['Contract / Buyer','Contract number, buyer name, SAP deal ticket'],['Shipment','BL, HBL, vessel, voyage, POL, POD, ETD, ETA'],['Documentation','OBL scan, DHL, destination receipt, certificate scan and banking'],['Quantity','Sales qty, stuffed net weight, BL net weight, landed qty'],['Quality','Contract KOR, loaded KOR, landed KOR, NC, moisture'],['Execution stage','Business-friendly labels mapped from MIS Column A trade status'],['Origin Dues Radar','Origin-side pending queue monitored by Central Desk across LDS, SOB, Draft BL, OBL, cert, DHL and stuffing reports']]; $('dataMap').innerHTML=items.map(i=>`<div class="map-item"><b>${i[0]}</b><span>${i[1]}</span></div>`).join('')}
+function refreshAllViews(){ACTIVE_RISK_ID='all'; filteredRows=DATA.slice(); $('dashboardShell').classList.remove('hidden'); document.body.classList.add('ready'); document.querySelectorAll('#mainNav button').forEach(b=>b.disabled=false); $('pdfBtn').disabled=false; $('snapshotDate').innerText=SNAPSHOT_DISPLAY; $('sourceLabel').innerText=UPLOADED_FILE_NAME?`Uploaded: ${UPLOADED_FILE_NAME}`:'Uploaded file'; $('sourceLabel').parentElement.classList.remove('dim'); renderKPIs(); renderDestinationBars(); renderStageFlow(); buildFilters(); refreshShipmentTable(); renderDocs(); renderQuality(); renderBuyers(); renderForwarders(); renderRisk(); renderCentralDesk(); renderDataMap(); setSection('overview'); $('uploadGate').classList.add('hidden'); syncTopControls();}
+function readWorkbookFile(file){UPLOADED_FILE_NAME=file.name; UPLOADED_IS_CSV=/\.csv$/i.test(file.name); $('chosenFileName').innerText=file.name; $('compactFileName').innerText=file.name; $('analyzeBtn').disabled=true; $('analyzeBtnTop').disabled=true; setUploadStatus('Reading file…'); const reader=new FileReader(); reader.onload=function(e){try{if(!window.XLSX){setUploadStatus('Excel parser not loaded. Publish/open this page with internet access so the XLSX parser can load, or upload CSV.', 'bad'); return;} const data=e.target.result; UPLOADED_WORKBOOK=UPLOADED_IS_CSV?XLSX.read(data,{type:'string'}):XLSX.read(data,{type:'array',cellDates:false}); const names=UPLOADED_WORKBOOK.SheetNames||[]; const opts=names.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join(''); $('sheetSelect').innerHTML=opts; $('sheetSelectTop').innerHTML=opts; const misName=names.find(n=>/MIS\s*2026/i.test(n))||names.find(n=>/MIS/i.test(n))||names[0]; if(misName){$('sheetSelect').value=misName; $('sheetSelectTop').value=misName;} $('sheetSelect').disabled=false; $('sheetSelectTop').disabled=false; $('analyzeBtn').disabled=false; $('analyzeBtnTop').disabled=false; setUploadStatus(`Loaded <b>${escapeHTML(file.name)}</b>. Selected sheet: <b>${escapeHTML($('sheetSelect').value)}</b>. Tap Analyze to view the dashboard.`, 'good'); syncTopControls();}catch(err){console.error(err); setUploadStatus('Unable to read this file. Please upload .xlsx/.xls/.csv with MIS structure.', 'bad');}}; reader.onerror=function(){setUploadStatus('File read failed. Please try again.', 'bad')}; if(UPLOADED_IS_CSV)reader.readAsText(file); else reader.readAsArrayBuffer(file)}
+function handleWorkbookFile(event){const file=event.target.files&&event.target.files[0]; if(file)readWorkbookFile(file)}
+$('sheetSelect').addEventListener('change',()=>{if($('sheetSelectTop'))$('sheetSelectTop').value=$('sheetSelect').value}); $('sheetSelectTop').addEventListener('change',()=>{if($('sheetSelect'))$('sheetSelect').value=$('sheetSelectTop').value});
+function analyzeUploadedSheet(){if(!UPLOADED_WORKBOOK){setUploadStatus('Please choose an Excel/CSV file first.', 'bad'); return;} try{const sheetName=($('sheetSelectTop')&&!$('sheetSelectTop').disabled&&$('sheetSelectTop').value)||$('sheetSelect').value||UPLOADED_WORKBOOK.SheetNames[0]; $('sheetSelect').value=sheetName; if($('sheetSelectTop'))$('sheetSelectTop').value=sheetName; const ws=UPLOADED_WORKBOOK.Sheets[sheetName]; let rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''}); let parsed=parseMisRows(rows); if(parsed.length===0){rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}); parsed=parseMisRows(rows);} if(parsed.length===0){setUploadStatus('No usable MIS rows found. Please select the MIS 2026 sheet with TRADE STATUS in Column A and Final ETA in Column BO.', 'bad'); return;} DATA=parsed; const now=new Date(); SNAPSHOT_DISPLAY=formatDateDisplay(now); refreshAllViews(); setUploadStatus(`Analyzed <b>${fmt.format(DATA.length)}</b> rows from <b>${escapeHTML(sheetName)}</b>. Dashboard refreshed.`, 'good'); addMsg(`Dashboard refreshed using uploaded file: <b>${escapeHTML(UPLOADED_FILE_NAME)}</b>. ${fmt.format(DATA.length)} rows analyzed.`, 'bot');}catch(err){console.error(err); setUploadStatus(`Analyze failed: ${escapeHTML(err&&err.message?err.message:'unknown error')}. Use MIS 2026 sheet; Final ETA must be Column BO.`, 'bad')}}
+const dz=$('dropzone'); ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault(); dz.classList.add('drag')})); ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault(); dz.classList.remove('drag')})); dz.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f)readWorkbookFile(f)});
+const veeBtn=$('veeBtn'), veePanel=$('veePanel'); veeBtn.addEventListener('click',e=>{e.stopPropagation(); veePanel.classList.toggle('open')}); document.addEventListener('click',e=>{if(!veePanel.contains(e.target)&&e.target!==veeBtn)closeVee()}); function closeVee(){veePanel.classList.remove('open')} function addMsg(text,who='bot'){const el=document.createElement('div'); el.className='msg '+who; el.innerHTML=text; $('veeLog').appendChild(el); $('veeLog').scrollTop=99999}
+function askVee(){const inp=$('veeInput'); const q=inp.value.trim(); if(!q)return; addMsg(escapeHTML(q),'user'); inp.value=''; if(!DATA.length){addMsg('Upload and analyze an MIS sheet first. Then I can answer from the dashboard data.','bot');return;} const u=up(q); let answer=''; if(u.includes('CENTRAL')||u.includes('ORIGIN')||u.includes('DUE')||u.includes('PENDING')){const t=buildCentralTasks(); answer=`Origin dues monitored by Central Desk: <b>${t.length}</b>. Critical / high: <b>${t.filter(x=>x.priority==='High').length}</b>. Open the Origin Dues tab to filter by origin and issue type.`;} else if(u.includes('RISK')||u.includes('RADAR')){const m=traderRiskMatches(); answer=`Top-5 trader risk exceptions: <b>${m.length}</b>. High priority: <b>${m.filter(x=>x.level==='bad').length}</b>. Open the Risk tab for the contract-level register.`;} else if(u.includes('CERT'))answer=`Cert pending after sailing: <b>${count(DATA,certPending)}</b>. Cert control/received: <b>${count(DATA,docCertReceived)}</b>.`; else if(u.includes('OBL'))answer=`OBL pending after sailing: <b>${count(DATA,oblPending)}</b>. OBL control/received/in transit: <b>${count(DATA,docOBLReceived)}</b>.`; else if(u.includes('TOTAL')||u.includes('SUMMARY'))answer=`Total contracts: <b>${DATA.length}</b>, sales qty: <b>${fmt.format(sum(DATA,'salesQty'))} MT</b>, containers: <b>${fmt.format(sum(DATA,'contsQty'))}</b>.`; else{const found=DATA.filter(r=>up([r.contractNo,r.blNo,r.hbl,r.buyer,r.vessel].join(' ')).includes(u)).slice(0,4); answer=found.length?found.map(r=>`<b>${escapeHTML(r.contractNo)}</b> · ${escapeHTML(r.buyer)} · BL ${escapeHTML(r.blNo||'-')} · ${escapeHTML(r.destination||'-')} · ${stageLabel(stage(r))}`).join('<br/>'):'I could not find an exact match. Try buyer name, contract number, BL number, or ask “total pending certs”.';} addMsg(answer,'bot')}
+</script>
+</body>
 </html>

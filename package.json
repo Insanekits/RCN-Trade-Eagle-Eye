@@ -2,17 +2,17 @@
   "name": "rcn-trade-eagle-eye",
   "version": "1.0.0",
   "private": true,
-  "description": "Static Trade Eagle Eye dashboard for RCN trade monitoring with Excel-to-JSON sync support.",
+  "description": "Upload-first Valency RCN Logistics Control Tower dashboard for MIS workbook analysis.",
   "scripts": {
     "dev": "python -m http.server 5173",
-    "sync": "python scripts/sync_excel.py --env sync.env",
-    "validate": "python scripts/sync_excel.py --env sync.env --validate-only"
+    "validate": "python -m json.tool package.json"
   },
   "keywords": [
     "rcn",
-    "trade",
+    "logistics",
+    "control-tower",
     "dashboard",
-    "excel-sync"
+    "mis"
   ],
   "license": "UNLICENSED"
 }
