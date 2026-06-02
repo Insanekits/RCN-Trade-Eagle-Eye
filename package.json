@@ -2,9 +2,11 @@
   "name": "rcn-trade-eagle-eye",
   "version": "1.0.0",
   "private": true,
-  "description": "Upload-first Valency RCN Logistics Control Tower dashboard for MIS workbook analysis.",
+  "description": "Valency RCN Trade Eagle Eye dashboard with OneDrive workbook sync and OpenAI-backed Vee Patron chat.",
   "scripts": {
     "dev": "python -m http.server 5173",
+    "sync": "./scripts/sync.sh",
+    "sync:win": "powershell -ExecutionPolicy Bypass -File ./scripts/sync.ps1",
     "validate": "python -m json.tool package.json"
   },
   "keywords": [
@@ -12,7 +14,12 @@
     "logistics",
     "control-tower",
     "dashboard",
-    "mis"
+    "mis",
+    "onedrive-sync",
+    "openai"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "license": "UNLICENSED"
 }

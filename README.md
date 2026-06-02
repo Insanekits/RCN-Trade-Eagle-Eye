@@ -1,37 +1,64 @@
 # RCN Trade Eagle Eye
 
-Upload-first Valency RCN Logistics Control Tower dashboard for shipment execution, origin dues, documentation, quality, buyer, forwarder, and risk monitoring.
+Valency RCN Trade Eagle Eye dashboard for shipment execution, origin dues, documentation, quality, buyer, forwarder, and risk monitoring.
 
-## What the dashboard does
+## Live Workbook Flow
 
-The dashboard starts blank and asks the user to upload an Excel or CSV MIS workbook. It uses the browser-side SheetJS parser from CDN to read the selected sheet, auto-prefers `MIS 2026`, and converts workbook rows into dashboard records.
-
-After analysis it renders:
-
-- Overview KPIs, trade position mix, and execution stage flow.
-- Origin Dues Radar and Origin Dues Matrix with contract-level pending checkpoints.
-- Shipment search and CSV export.
-- Document, quality, buyer, forwarder, risk, and data map views.
-- A small in-page assistant named Vee for quick MIS summaries after upload.
-
-No MIS data is embedded in the HTML file.
-
-## Repository layout
+The dashboard first tries to load the latest deployed workbook from:
 
 ```text
-index.html             Static upload-first dashboard application
-package.json           Local static-server command
-vercel.json            Static Vercel routing and cache headers
+data/rcn-mis.xlsx
 ```
 
-## Run locally
+That file is refreshed from the local OneDrive-synced MIS workbook by the sync script. If no workbook has been synced yet, the dashboard keeps the manual Excel upload screen available.
+
+## OneDrive Sync
+
+Copy the template and keep your local path private:
+
+```powershell
+Copy-Item scripts\sync.env.example scripts\sync.env
+```
+
+`scripts/sync.env` is gitignored. It should contain:
+
+```env
+RCN_MIS_SOURCE="C:\Users\KrishnaVajramati\OneDrive - Valency International Pte Ltd\VI-RCN - OPERATIONS\CASHEW 2026-27\MIS TRACKER 2026-27\Trade Ops relates\RCN MIS 2026-27 TRACKER V01.xlsx"
+RCN_MIS_DEST=data/rcn-mis.xlsx
+SYNC_BRANCH=main
+```
+
+Run on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\sync.ps1
+```
+
+The script copies the workbook into `data/rcn-mis.xlsx`, commits it, and pushes `main`, so Vercel redeploys with the latest file.
+
+## OpenAI Chatbot
+
+`api/chat.py` is a Vercel Python serverless function for Vee Patron. The OpenAI API key stays on the server and is never sent to the browser.
+
+Set these Vercel environment variables:
+
+```text
+OPENAI_API_KEY=your key
+OPENAI_MODEL=gpt-4o-mini
+```
+
+`OPENAI_MODEL` is optional. If `/api/chat` is unavailable or the key is not configured, Vee Patron falls back to the built-in dashboard rules.
+
+## Local Run
+
+Static local server:
 
 ```bash
 npm run dev
 ```
 
-Then open <http://localhost:5173>.
+For local `/api/chat` testing, use Vercel dev with `.env.local`:
 
-## Deploy
-
-This is a static site. Vercel can serve it directly from the repository root using the included `vercel.json` rewrite rule.
+```bash
+vercel dev
+```

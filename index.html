@@ -104,7 +104,7 @@ body{margin:0;background:radial-gradient(circle at 40% 0%,#eef5ff 0%,#f8fafc 34%
             <div>
               <span class="eyebrow">Upload-first control tower</span>
               <h3>Load latest MIS. Analyze. Control execution.</h3>
-              <p>A clean upload-first cockpit. No old snapshot data is shown. The dashboard opens only after your workbook is processed in-browser.</p>
+              <p>The dashboard auto-loads the latest synced OneDrive workbook when deployed. Manual upload remains available as a fallback.</p>
             </div>
             <div class="upload-stat-card">
               <span>Required source</span>
@@ -129,7 +129,7 @@ body{margin:0;background:radial-gradient(circle at 40% 0%,#eef5ff 0%,#f8fafc 34%
                 <select class="select" id="sheetSelect" disabled><option>No sheet loaded</option></select>
                 <button class="btn" id="analyzeBtn" onclick="analyzeUploadedSheet()" disabled>Analyze</button>
               </div>
-              <div class="upload-status" id="uploadStatus">Waiting for upload. No MIS data is currently loaded. After Analyze, choose any origin in Origin Dues Radar to see exact pending details and cycle-time delay.</div>
+              <div class="upload-status" id="uploadStatus">Checking for synced workbook. If none is deployed yet, upload the MIS manually or run the local OneDrive sync script.</div>
             </div>
 
             <div class="upload-right">
@@ -310,10 +310,11 @@ body{margin:0;background:radial-gradient(circle at 40% 0%,#eef5ff 0%,#f8fafc 34%
 </div>
 
 <button class="vee-button" id="veeBtn">Vee</button>
-<div class="vee-panel" id="veePanel"><div class="vee-head"><h4>Vee Patron</h4><button class="btn small secondary" onclick="closeVee()">Close</button></div><div class="vee-log" id="veeLog"><div class="msg bot">Upload and analyze an MIS sheet first. Then ask me about OBL, certs, total summary, buyer or BL search.</div></div><div class="vee-input"><input id="veeInput" placeholder="Ask about this uploaded MIS..." onkeydown="if(event.key==='Enter')askVee()"/><button class="btn small" onclick="askVee()">Ask</button></div></div>
+<div class="vee-panel" id="veePanel"><div class="vee-head"><h4>Vee Patron</h4><button class="btn small secondary" onclick="closeVee()">Close</button></div><div class="vee-log" id="veeLog"><div class="msg bot">I can answer from the synced or uploaded MIS. If OpenAI is configured on Vercel, I will use AI; otherwise I fall back to dashboard rules.</div></div><div class="vee-input"><input id="veeInput" placeholder="Ask about this MIS..." onkeydown="if(event.key==='Enter')askVee()"/><button class="btn small" onclick="askVee()">Ask</button></div></div>
 
 <script>
-let DATA=[]; let filteredRows=[]; let ACTIVE_RISK_ID='all'; let UPLOADED_WORKBOOK=null; let UPLOADED_FILE_NAME=''; let UPLOADED_IS_CSV=false; let SNAPSHOT_DISPLAY='Awaiting upload';
+let DATA=[]; let filteredRows=[]; let ACTIVE_RISK_ID='all'; let UPLOADED_WORKBOOK=null; let UPLOADED_FILE_NAME=''; let UPLOADED_IS_CSV=false; let SNAPSHOT_DISPLAY='Awaiting upload'; let LLM_AVAILABLE=true;
+const LIVE_WORKBOOK_URL='data/rcn-mis.xlsx'; const LLM_ENDPOINT='/api/chat';
 const fmt=new Intl.NumberFormat('en-US',{maximumFractionDigits:0}); const fmt1=new Intl.NumberFormat('en-US',{maximumFractionDigits:1});
 function $(id){return document.getElementById(id)} function txt(v){return (v===null||v===undefined)?'':String(v).trim()} function up(v){return txt(v).toUpperCase()} function has(v){const s=txt(v);return s!=='' && s!=='0' && s!=='-' && s.toUpperCase()!=='N/A'} function n(v){const x=Number(String(v??'').replace(/,/g,''));return isFinite(x)?x:0} function escapeHTML(s){return txt(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function escapeAttr(s){
@@ -331,6 +332,39 @@ function setSection(id){document.querySelectorAll('.section').forEach(s=>s.class
 document.querySelectorAll('#mainNav button').forEach(btn=>btn.addEventListener('click',()=>{if(!btn.disabled)setSection(btn.dataset.section)}));
 function syncTopControls(){const s=$('sheetSelect'), t=$('sheetSelectTop'); if(!s||!t)return; t.innerHTML=s.innerHTML; t.value=s.value; t.disabled=s.disabled; $('analyzeBtnTop').disabled=$('analyzeBtn').disabled; $('compactFileName').textContent=UPLOADED_FILE_NAME||'No file selected';}
 function setUploadStatus(msg,tone='neutral'){const el=$('uploadStatus'); if(!el)return; el.innerHTML=msg; el.className='upload-status '+(tone==='good'?'good':tone==='bad'?'bad':'');}
+function populateWorkbookSelectors(names){
+  const opts=(names||[]).map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('');
+  $('sheetSelect').innerHTML=opts||'<option>No sheet loaded</option>';
+  $('sheetSelectTop').innerHTML=opts||'<option>No sheet loaded</option>';
+  const misName=(names||[]).find(n=>/MIS\s*2026/i.test(n))||(names||[]).find(n=>/MIS/i.test(n))||(names||[])[0];
+  if(misName){$('sheetSelect').value=misName; $('sheetSelectTop').value=misName;}
+  $('sheetSelect').disabled=!misName; $('sheetSelectTop').disabled=!misName;
+  $('analyzeBtn').disabled=!misName; $('analyzeBtnTop').disabled=!misName;
+  syncTopControls();
+}
+async function loadSyncedWorkbook(){
+  if(!window.XLSX){setUploadStatus('Excel parser is still loading. Use manual upload if auto-load does not start.', 'bad'); return;}
+  setUploadStatus('Checking synced OneDrive workbook...');
+  try{
+    const resp=await fetch(LIVE_WORKBOOK_URL+'?ts='+Date.now(),{cache:'no-store'});
+    if(!resp.ok){
+      setUploadStatus('No synced workbook found yet. Run scripts/sync.ps1, or upload the MIS manually.', 'neutral');
+      return;
+    }
+    const buf=await resp.arrayBuffer();
+    if(!buf||buf.byteLength<100)throw new Error('Synced workbook is empty or truncated.');
+    UPLOADED_WORKBOOK=XLSX.read(buf,{type:'array',cellDates:false});
+    UPLOADED_FILE_NAME='Synced OneDrive workbook';
+    UPLOADED_IS_CSV=false;
+    $('chosenFileName').innerText='data/rcn-mis.xlsx';
+    $('compactFileName').innerText='data/rcn-mis.xlsx';
+    populateWorkbookSelectors(UPLOADED_WORKBOOK.SheetNames||[]);
+    await analyzeUploadedSheet();
+  }catch(err){
+    console.error(err);
+    setUploadStatus(`Synced workbook load failed: ${escapeHTML(err&&err.message?err.message:'unknown error')}. You can still upload manually.`, 'bad');
+  }
+}
 function cell(r,i){return (r&&i>=0&&i<r.length)?r[i]:''} function cleanCell(v){return txt(v)} function numCell(v){if(typeof v==='number')return isFinite(v)?v:0; const s=txt(v).replace(/,/g,''); const m=s.match(/-?\d+(\.\d+)?/); return m?Number(m[0]):0}
 function datePartsFromExcelSerial(v){
   try{
@@ -1168,13 +1202,24 @@ function exportCentralDeskCSV(){
 
 function renderDataMap(){const items=[['Contract / Buyer','Contract number, buyer name, SAP deal ticket'],['Shipment','BL, HBL, vessel, voyage, POL, POD, ETD, ETA'],['Documentation','OBL scan, DHL, destination receipt, certificate scan and banking'],['Quantity','Sales qty, stuffed net weight, BL net weight, landed qty'],['Quality','Contract KOR, loaded KOR, landed KOR, NC, moisture'],['Execution stage','Business-friendly labels mapped from MIS Column A trade status'],['Origin Dues Radar','Origin-side pending queue monitored by Central Desk across LDS, SOB, Draft BL, OBL, cert, DHL and stuffing reports']]; $('dataMap').innerHTML=items.map(i=>`<div class="map-item"><b>${i[0]}</b><span>${i[1]}</span></div>`).join('')}
 function refreshAllViews(){ACTIVE_RISK_ID='all'; filteredRows=DATA.slice(); $('dashboardShell').classList.remove('hidden'); document.body.classList.add('ready'); document.querySelectorAll('#mainNav button').forEach(b=>b.disabled=false); $('pdfBtn').disabled=false; $('snapshotDate').innerText=SNAPSHOT_DISPLAY; $('sourceLabel').innerText=UPLOADED_FILE_NAME?`Uploaded: ${UPLOADED_FILE_NAME}`:'Uploaded file'; $('sourceLabel').parentElement.classList.remove('dim'); renderKPIs(); renderDestinationBars(); renderStageFlow(); buildFilters(); refreshShipmentTable(); renderDocs(); renderQuality(); renderBuyers(); renderForwarders(); renderRisk(); renderCentralDesk(); renderDataMap(); setSection('overview'); $('uploadGate').classList.add('hidden'); syncTopControls();}
-function readWorkbookFile(file){UPLOADED_FILE_NAME=file.name; UPLOADED_IS_CSV=/\.csv$/i.test(file.name); $('chosenFileName').innerText=file.name; $('compactFileName').innerText=file.name; $('analyzeBtn').disabled=true; $('analyzeBtnTop').disabled=true; setUploadStatus('Reading file…'); const reader=new FileReader(); reader.onload=function(e){try{if(!window.XLSX){setUploadStatus('Excel parser not loaded. Publish/open this page with internet access so the XLSX parser can load, or upload CSV.', 'bad'); return;} const data=e.target.result; UPLOADED_WORKBOOK=UPLOADED_IS_CSV?XLSX.read(data,{type:'string'}):XLSX.read(data,{type:'array',cellDates:false}); const names=UPLOADED_WORKBOOK.SheetNames||[]; const opts=names.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join(''); $('sheetSelect').innerHTML=opts; $('sheetSelectTop').innerHTML=opts; const misName=names.find(n=>/MIS\s*2026/i.test(n))||names.find(n=>/MIS/i.test(n))||names[0]; if(misName){$('sheetSelect').value=misName; $('sheetSelectTop').value=misName;} $('sheetSelect').disabled=false; $('sheetSelectTop').disabled=false; $('analyzeBtn').disabled=false; $('analyzeBtnTop').disabled=false; setUploadStatus(`Loaded <b>${escapeHTML(file.name)}</b>. Selected sheet: <b>${escapeHTML($('sheetSelect').value)}</b>. Tap Analyze to view the dashboard.`, 'good'); syncTopControls();}catch(err){console.error(err); setUploadStatus('Unable to read this file. Please upload .xlsx/.xls/.csv with MIS structure.', 'bad');}}; reader.onerror=function(){setUploadStatus('File read failed. Please try again.', 'bad')}; if(UPLOADED_IS_CSV)reader.readAsText(file); else reader.readAsArrayBuffer(file)}
+function readWorkbookFile(file){UPLOADED_FILE_NAME=file.name; UPLOADED_IS_CSV=/\.csv$/i.test(file.name); $('chosenFileName').innerText=file.name; $('compactFileName').innerText=file.name; $('analyzeBtn').disabled=true; $('analyzeBtnTop').disabled=true; setUploadStatus('Reading file…'); const reader=new FileReader(); reader.onload=function(e){try{if(!window.XLSX){setUploadStatus('Excel parser not loaded. Publish/open this page with internet access so the XLSX parser can load, or upload CSV.', 'bad'); return;} const data=e.target.result; UPLOADED_WORKBOOK=UPLOADED_IS_CSV?XLSX.read(data,{type:'string'}):XLSX.read(data,{type:'array',cellDates:false}); populateWorkbookSelectors(UPLOADED_WORKBOOK.SheetNames||[]); setUploadStatus(`Loaded <b>${escapeHTML(file.name)}</b>. Selected sheet: <b>${escapeHTML($('sheetSelect').value)}</b>. Tap Analyze to view the dashboard.`, 'good');}catch(err){console.error(err); setUploadStatus('Unable to read this file. Please upload .xlsx/.xls/.csv with MIS structure.', 'bad');}}; reader.onerror=function(){setUploadStatus('File read failed. Please try again.', 'bad')}; if(UPLOADED_IS_CSV)reader.readAsText(file); else reader.readAsArrayBuffer(file)}
 function handleWorkbookFile(event){const file=event.target.files&&event.target.files[0]; if(file)readWorkbookFile(file)}
 $('sheetSelect').addEventListener('change',()=>{if($('sheetSelectTop'))$('sheetSelectTop').value=$('sheetSelect').value}); $('sheetSelectTop').addEventListener('change',()=>{if($('sheetSelect'))$('sheetSelect').value=$('sheetSelectTop').value});
 function analyzeUploadedSheet(){if(!UPLOADED_WORKBOOK){setUploadStatus('Please choose an Excel/CSV file first.', 'bad'); return;} try{const sheetName=($('sheetSelectTop')&&!$('sheetSelectTop').disabled&&$('sheetSelectTop').value)||$('sheetSelect').value||UPLOADED_WORKBOOK.SheetNames[0]; $('sheetSelect').value=sheetName; if($('sheetSelectTop'))$('sheetSelectTop').value=sheetName; const ws=UPLOADED_WORKBOOK.Sheets[sheetName]; let rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''}); let parsed=parseMisRows(rows); if(parsed.length===0){rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}); parsed=parseMisRows(rows);} if(parsed.length===0){setUploadStatus('No usable MIS rows found. Please select the MIS 2026 sheet with TRADE STATUS in Column A and Final ETA in Column BO.', 'bad'); return;} DATA=parsed; const now=new Date(); SNAPSHOT_DISPLAY=formatDateDisplay(now); refreshAllViews(); setUploadStatus(`Analyzed <b>${fmt.format(DATA.length)}</b> rows from <b>${escapeHTML(sheetName)}</b>. Dashboard refreshed.`, 'good'); addMsg(`Dashboard refreshed using uploaded file: <b>${escapeHTML(UPLOADED_FILE_NAME)}</b>. ${fmt.format(DATA.length)} rows analyzed.`, 'bot');}catch(err){console.error(err); setUploadStatus(`Analyze failed: ${escapeHTML(err&&err.message?err.message:'unknown error')}. Use MIS 2026 sheet; Final ETA must be Column BO.`, 'bad')}}
 const dz=$('dropzone'); ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault(); dz.classList.add('drag')})); ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault(); dz.classList.remove('drag')})); dz.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f)readWorkbookFile(f)});
 const veeBtn=$('veeBtn'), veePanel=$('veePanel'); veeBtn.addEventListener('click',e=>{e.stopPropagation(); veePanel.classList.toggle('open')}); document.addEventListener('click',e=>{if(!veePanel.contains(e.target)&&e.target!==veeBtn)closeVee()}); function closeVee(){veePanel.classList.remove('open')} function addMsg(text,who='bot'){const el=document.createElement('div'); el.className='msg '+who; el.innerHTML=text; $('veeLog').appendChild(el); $('veeLog').scrollTop=99999}
-function askVee(){const inp=$('veeInput'); const q=inp.value.trim(); if(!q)return; addMsg(escapeHTML(q),'user'); inp.value=''; if(!DATA.length){addMsg('Upload and analyze an MIS sheet first. Then I can answer from the dashboard data.','bot');return;} const u=up(q); let answer=''; if(u.includes('CENTRAL')||u.includes('ORIGIN')||u.includes('DUE')||u.includes('PENDING')){const t=buildCentralTasks(); answer=`Origin dues monitored by Central Desk: <b>${t.length}</b>. Critical / high: <b>${t.filter(x=>x.priority==='High').length}</b>. Open the Origin Dues tab to filter by origin and issue type.`;} else if(u.includes('RISK')||u.includes('RADAR')){const m=traderRiskMatches(); answer=`Top-5 trader risk exceptions: <b>${m.length}</b>. High priority: <b>${m.filter(x=>x.level==='bad').length}</b>. Open the Risk tab for the contract-level register.`;} else if(u.includes('CERT'))answer=`Cert pending after sailing: <b>${count(DATA,certPending)}</b>. Cert control/received: <b>${count(DATA,docCertReceived)}</b>.`; else if(u.includes('OBL'))answer=`OBL pending after sailing: <b>${count(DATA,oblPending)}</b>. OBL control/received/in transit: <b>${count(DATA,docOBLReceived)}</b>.`; else if(u.includes('TOTAL')||u.includes('SUMMARY'))answer=`Total contracts: <b>${DATA.length}</b>, sales qty: <b>${fmt.format(sum(DATA,'salesQty'))} MT</b>, containers: <b>${fmt.format(sum(DATA,'contsQty'))}</b>.`; else{const found=DATA.filter(r=>up([r.contractNo,r.blNo,r.hbl,r.buyer,r.vessel].join(' ')).includes(u)).slice(0,4); answer=found.length?found.map(r=>`<b>${escapeHTML(r.contractNo)}</b> · ${escapeHTML(r.buyer)} · BL ${escapeHTML(r.blNo||'-')} · ${escapeHTML(r.destination||'-')} · ${stageLabel(stage(r))}`).join('<br/>'):'I could not find an exact match. Try buyer name, contract number, BL number, or ask “total pending certs”.';} addMsg(answer,'bot')}
+function offlineVeeAnswer(q){const u=up(q); if(u.includes('CENTRAL')||u.includes('ORIGIN')||u.includes('DUE')||u.includes('PENDING')){const t=buildCentralTasks(); return `Origin dues monitored by Central Desk: <b>${t.length}</b>. Critical / high: <b>${t.filter(x=>x.priority==='High').length}</b>. Open the Origin Dues tab to filter by origin and issue type.`;} if(u.includes('RISK')||u.includes('RADAR')){const m=traderRiskMatches(); return `Top-5 trader risk exceptions: <b>${m.length}</b>. High priority: <b>${m.filter(x=>x.level==='bad').length}</b>. Open the Risk tab for the contract-level register.`;} if(u.includes('CERT'))return `Cert pending after sailing: <b>${count(DATA,certPending)}</b>. Cert control/received: <b>${count(DATA,docCertReceived)}</b>.`; if(u.includes('OBL'))return `OBL pending after sailing: <b>${count(DATA,oblPending)}</b>. OBL control/received/in transit: <b>${count(DATA,docOBLReceived)}</b>.`; if(u.includes('TOTAL')||u.includes('SUMMARY'))return `Total contracts: <b>${DATA.length}</b>, sales qty: <b>${fmt.format(sum(DATA,'salesQty'))} MT</b>, containers: <b>${fmt.format(sum(DATA,'contsQty'))}</b>.`; const found=DATA.filter(r=>up([r.contractNo,r.sapDealTicket,r.blNo,r.hbl,r.buyer,r.vessel].join(' ')).includes(u)).slice(0,4); return found.length?found.map(r=>`<b>${escapeHTML(r.contractNo)}</b> · ${escapeHTML(r.buyer)} · BL ${escapeHTML(r.blNo||'-')} · ${escapeHTML(r.destination||'-')} · ${stageLabel(stage(r))}`).join('<br/>'):'I could not find an exact match. Try buyer name, contract number, BL number, or ask “total pending certs”.';}
+function buildLlmContext(question){
+  const q=up(question);
+  const rows=DATA.filter(r=>!q||up([r.contractNo,r.sapDealTicket,r.blNo,r.hbl,r.buyer,r.vessel,r.destination,r.pod,r.origin].join(' ')).includes(q)).slice(0,80).map(r=>({contractNo:r.contractNo,sapDealTicket:r.sapDealTicket,buyer:r.buyer,origin:r.origin,destination:r.destination,pod:r.pod,blNo:r.blNo,hbl:r.hbl,vessel:r.vessel,lds:r.lds,sob:r.sob,eta:r.finalEta||r.eta,tradeStatus:r.tradeStatus,salesQty:r.salesQty,blNetWt:r.blNetWt,containers:r.contsQty,oblScanDate:r.oblScanDate,certScanDate:r.certScanDate,negoStatus:r.negoStatus}));
+  const central=buildCentralTasks();
+  const risk=traderRiskMatches();
+  return {source:UPLOADED_FILE_NAME,totalContracts:DATA.length,kpis:{salesQty:sum(DATA,'salesQty'),blQty:sum(DATA,'blNetWt'),containers:sum(DATA,'contsQty'),oblPending:count(DATA,oblPending),certPending:count(DATA,certPending)},originDues:{total:central.length,high:central.filter(t=>t.priority==='High').length,topOrigins:Object.entries(groupBy(central,t=>t.origin)).map(([origin,items])=>({origin,count:items.length,high:items.filter(t=>t.priority==='High').length})).sort((a,b)=>b.count-a.count).slice(0,12)},risk:{total:risk.length,high:risk.filter(x=>x.level==='bad').length},matchedContracts:rows.length,rows};
+}
+function renderAiAnswer(text){return escapeHTML(text).replace(/\n/g,'<br/>');}
+async function askLlm(question){if(!LLM_AVAILABLE)return null; try{const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),28000); const resp=await fetch(LLM_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question,context:buildLlmContext(question)}),signal:ctrl.signal}); clearTimeout(timer); if(!resp.ok){if(resp.status===500)LLM_AVAILABLE=false; return null;} const out=await resp.json(); return out&&out.answer?out.answer:null;}catch(_err){return null;}}
+async function askVee(){const inp=$('veeInput'); const q=inp.value.trim(); if(!q)return; addMsg(escapeHTML(q),'user'); inp.value=''; if(!DATA.length){addMsg('Sync or upload and analyze an MIS sheet first. Then I can answer from dashboard data.','bot');return;} const thinking=document.createElement('div'); thinking.className='msg bot'; thinking.innerHTML='Thinking…'; $('veeLog').appendChild(thinking); $('veeLog').scrollTop=99999; const ai=await askLlm(q); if(ai){thinking.innerHTML=`<b>Vee Patron · AI</b><br/>${renderAiAnswer(ai)}`;} else {thinking.innerHTML=offlineVeeAnswer(q);}}
+loadSyncedWorkbook();
 </script>
 </body>
 </html>

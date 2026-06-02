@@ -1,0 +1,4 @@
+.env.local
+scripts/sync.env
+.vercel
+node_modules
